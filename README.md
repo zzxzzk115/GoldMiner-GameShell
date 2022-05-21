@@ -18,7 +18,19 @@ Select Button -> Exit current level when you reach goal
 
 ## Screenshots
 
+![menu](./pictures/screenshots_01_main_menu.png)
 
+![first goal](./pictures/screenshots_02_first_goal.png)
+
+![first goal](./pictures/screenshots_03_level01.png)
+
+## Pictures
+
+![menu](./pictures/pictures_01_main_menu.jpg)
+
+![first goal](./pictures/pictures_02_first_goal.jpg)
+
+![first goal](./pictures/pictures_03_level01.jpg)
 
 ## TODO-List
 
