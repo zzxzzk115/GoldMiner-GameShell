@@ -10,11 +10,15 @@ The project is in demo stage.
 
 Menu button -> Exit
 
-A Button or Start Button -> Menu Confirm
+A button or Start button -> Menu Confirm or Buy
 
-A Button or Down -> Grab
+X button or Up -> Use dynamite
 
-Select Button -> Exit current level when you reach goal
+A button or Down -> Grab
+
+Select Button -> Exit current level when you reach goal or Confirm shopping
+
+Left and Right -> Select the shop item you wanna buy
 
 ## Screenshots
 
@@ -22,7 +26,9 @@ Select Button -> Exit current level when you reach goal
 
 ![first goal](./pictures/screenshots_02_first_goal.png)
 
-![first goal](./pictures/screenshots_03_level01.png)
+![level01](./pictures/screenshots_03_level01.png)
+
+![shop](./pictures/screenshots_04_shop.png)
 
 ## Photos
 
@@ -30,7 +36,7 @@ Select Button -> Exit current level when you reach goal
 
 ![first goal](./pictures/photos_02_first_goal.jpg)
 
-![first goal](./pictures/photos_03_level01.jpg)
+![level01](./pictures/photos_03_level01.jpg)
 
 ## Release Notes
 

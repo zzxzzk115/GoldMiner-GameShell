@@ -192,7 +192,7 @@ function shop:keypressed(key)
         else
             self.dialogueTextContent = 'Thank you for your patronage!\nGood luck!'
         end
-    elseif key == 'a' or key == 'return' or key == 'enter' then
+    elseif key == 'k' or key == 'return' or key == 'enter' then
         -- Buy prop
         local prop = self.items[self.selectorIndex]
         if prop  ~= nil and not self.isPlayerFinishShopping then

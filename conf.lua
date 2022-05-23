@@ -24,7 +24,7 @@ COLOR_GREEN = {67/255, 160/255, 71/255}
 
 TOTAL_LEVEL_COUNT = 3
 
-DEBUG_MODE = false
+DEBUG_MODE = true
 
 function love.conf(t)
     t.version = "11.1"                      -- The LÖVE version this game was made for (string)
