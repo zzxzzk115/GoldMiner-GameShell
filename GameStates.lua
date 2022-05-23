@@ -1,8 +1,10 @@
 levels = require 'levels'
+require 'props'
 
 menu = {}
 showNextGoal = {}
 showMadeGoal = {}
+shop = {}
 game = {}
 gameOver = {}
 
@@ -10,8 +12,6 @@ local start = 0
 local highScore = 1
 
 function menu:init()
-    self.bg = love.graphics.newImage('images/bg_start_menu.png')
-    self.arrow = love.graphics.newImage('images/menu_arrow.png')
     self.arrowPos = {
         x = 0,
         y = 0
@@ -55,7 +55,7 @@ end
 
 function menu:draw()
     -- Draw BG
-    love.graphics.draw(self.bg)
+    love.graphics.draw(backgrounds['Menu'])
 
     -- Draw menu text
     local startGameText = love.graphics.newText(uiFont, {COLOR_YELLOW, 'Start Game'})
@@ -66,7 +66,7 @@ function menu:draw()
     love.graphics.draw(devInfoText, 75, 225)
 
     -- Draw arrow
-    love.graphics.draw(self.arrow, self.arrowPos.x, self.arrowPos.y)
+    love.graphics.draw(sprites['MenuArrow'], self.arrowPos.x, self.arrowPos.y)
 end
 
 function showNextGoal:init()
@@ -83,11 +83,11 @@ function showNextGoal:enter()
     end
 
     -- Play goal bgm
-    musics['goal']:play()
+    musics['Goal']:play()
 end 
 
 function showNextGoal:update()
-    if not musics['goal']:isPlaying() then
+    if not musics['Goal']:isPlaying() then
 		Gamestate.switch(game)
 	end
 end 
@@ -97,10 +97,10 @@ function showNextGoal:draw()
     love.graphics.draw(backgrounds['Goal'])
 
     -- Draw title
-    love.graphics.draw(backgrounds['Title'], WINDOW_WIDTH / 2 - backgrounds['Title']:getWidth() / 2, 20)
+    love.graphics.draw(sprites['Title'], WINDOW_WIDTH / 2 - sprites['Title']:getWidth() / 2, 20)
 
     -- Draw panel
-    love.graphics.draw(backgrounds['Panel'], WINDOW_WIDTH / 2 - backgrounds['Panel']:getWidth() / 2, 80)
+    love.graphics.draw(sprites['Panel'], WINDOW_WIDTH / 2 - sprites['Panel']:getWidth() / 2, 80)
 
     -- Draw next goal text
     local nextGoalText = love.graphics.newText(uiFont, {COLOR_YELLOW, self.goalTextContent, COLOR_GREEN, '\n\n$' .. player:getGoal()})
@@ -109,22 +109,22 @@ end
 
 function showMadeGoal:enter()
     -- Init timer
-    self.timer = 0
+    self.timer = 0.5
     -- Increase player level
     player.level = player.level + 1
     -- Init goal text
     self.goalTextContent = 'You made it to\nthe next Level!'
     -- Play goal bgm
-    musics['goal']:play()
+    musics['MadeGoal']:play()
 end 
 
 function showMadeGoal:update(dt)
-    if not musics['goal']:isPlaying() then
-        self.timer = self.timer + dt
+    if not musics['MadeGoal']:isPlaying() then
+        self.timer = self.timer - dt
 	end
 
-    if self.timer >= 0.5 then
-        Gamestate.switch(showNextGoal)
+    if self.timer <= 0 then
+        Gamestate.switch(shop)
     end
 end
 
@@ -133,21 +133,148 @@ function showMadeGoal:draw()
     love.graphics.draw(backgrounds['Goal'])
 
     -- Draw title
-    love.graphics.draw(backgrounds['Title'], WINDOW_WIDTH / 2 - backgrounds['Title']:getWidth() / 2, 20)
+    love.graphics.draw(sprites['Title'], WINDOW_WIDTH / 2 - sprites['Title']:getWidth() / 2, 20)
 
     -- Draw panel
-    love.graphics.draw(backgrounds['Panel'], WINDOW_WIDTH / 2 - backgrounds['Panel']:getWidth() / 2, 80)
+    love.graphics.draw(sprites['Panel'], WINDOW_WIDTH / 2 - sprites['Panel']:getWidth() / 2, 80)
 
     -- Draw made goal text
     local madeGoalText = love.graphics.newText(uiFont, {COLOR_YELLOW, self.goalTextContent})
     love.graphics.draw(madeGoalText, 90, 110)
 end 
 
+function shop:enter()
+    -- Init items and start pos
+    self.items = {}
+    self.itemsStartBottomPos = vector(30, 176)
+
+    -- Init selector
+    self.selectorInfo = {}
+    self.selectorIndex = 1
+
+    -- Generate random shop items(props)
+    local itemIndex = 1
+    for propIndex, prop in ipairs(props) do
+        -- Random price
+        propsConfig[prop].price = math.random(10, 150) * player.level - 9
+        propsConfig[prop].pos = self.itemsStartBottomPos + vector((propIndex - 1) * SHOP_ITEM_PADDING, 0)
+        local add = (math.random(1, 3) >= 2)
+        if add then
+            self.selectorInfo[itemIndex] = prop
+            table.insert(self.items, prop)
+            itemIndex = itemIndex + 1
+        end
+    end
+
+    -- Init shopkeeper's animation state
+    self.shopkeeperAnimation = shopkeeperIdleAnimation
+
+    -- Init dialogue text
+    self.defaultDialogueTextContent = 'Press Left and Right to select.\nPress A/Start to buy.\nPress Select when you are ready.'
+    self.dialogueTextContent = self.defaultDialogueTextContent
+
+    -- Init finish shopping timer
+    self.finishShoppingTimer = 1.5
+
+    -- Init misc state
+    
+    self.isPlayerFinishShopping = false
+    self.isPlayerBought = false
+end
+
+function shop:keypressed(key)
+    if key == 'space' then
+        -- Finish shopping
+        self.isPlayerFinishShopping = true
+        if not self.isPlayerBought then
+            self.dialogueTextContent = '  :('
+            self.shopkeeperAnimation = shopkeeperSadAnimation
+        else
+            self.dialogueTextContent = 'Thank you for your patronage!\nGood luck!'
+        end
+    elseif key == 'a' or key == 'return' or key == 'enter' then
+        -- Buy prop
+        local prop = self.items[self.selectorIndex]
+        if prop  ~= nil and not self.isPlayerFinishShopping then
+            if player.money >= propsConfig[prop].price then
+                self.isPlayerBought = true
+                if sounds['Money']:isPlaying() then
+                    sounds['Money']:stop()
+                end
+                sounds['Money']:play()
+                -- Decrease player's money
+                player.money = player.money - propsConfig[prop].price
+                player.money4View = player.money4View - propsConfig[prop].price
+                -- Take effect
+                propsConfig[prop].effectFunction(player)
+                -- Remove
+                table.remove(self.items, self.selectorIndex)
+                table.remove(self.selectorInfo, self.selectorIndex)
+                self.selectorIndex = 1
+            else
+                self.dialogueTextContent = "You don't seem to have any money\n:("
+            end
+        end
+    elseif key == 'left' then
+        self.selectorIndex = math.max(1, self.selectorIndex -1) 
+    elseif key == 'right' then
+        self.selectorIndex = math.min(self.selectorIndex + 1, #self.items)
+    end
+end
+
+function shop:update(dt)
+    self.shopkeeperAnimation:update(dt)
+
+    if self.isPlayerFinishShopping then
+        -- Start timer
+        self.finishShoppingTimer = self.finishShoppingTimer - dt
+
+        -- Times up, then switch to ShowNextGoal state.
+        if self.finishShoppingTimer <= 0 then
+            Gamestate.switch(showNextGoal)
+        end
+    end 
+end 
+
+function shop:draw()
+    -- Draw BG
+    love.graphics.draw(backgrounds['Shop'])
+
+    -- Draw title
+    love.graphics.draw(sprites['Title'], WINDOW_WIDTH / 2 - sprites['Title']:getWidth() / 2, 5)
+
+    -- Draw dialogue bubble and texts
+    love.graphics.draw(sprites['DialogueBubble'], 25, 70)
+    local dialogueText = love.graphics.newText(gameFont, {COLOR_BLACK, self.dialogueTextContent})
+    love.graphics.draw(dialogueText, 30, 75)
+
+    -- Draw Shopkeeper
+    love.graphics.draw(shopkeeperSheet, shopkeeperQuads[self.shopkeeperAnimation:getCurrentFrame()], 220, 100)
+
+    -- Draw Table
+    love.graphics.draw(sprites['Table'], 7, 176)
+
+    -- Draw shop items
+    for itemIndex, item in ipairs(self.items) do 
+        love.graphics.draw(sprites[item], propsConfig[item].pos.x, propsConfig[item].pos.y, 0, 1, 1, sprites[item]:getWidth() / 2, sprites[item]:getHeight())
+        local itemPriceText = love.graphics.newText(gameFont, {COLOR_GREEN, '$' .. propsConfig[item].price})
+        love.graphics.draw(itemPriceText, tointeger(propsConfig[item].pos.x - sprites[item]:getWidth() / 2), propsConfig[item].pos.y + 3)
+    end
+
+    -- Draw selector and description
+    if self.selectorInfo[self.selectorIndex] ~= nil then
+        local prop = propsConfig[self.selectorInfo[self.selectorIndex]]
+        love.graphics.draw(sprites['Selector'], prop.pos.x, 130, 0, 1, 1, sprites['Selector']:getWidth() / 2, sprites['Selector']:getHeight())
+        local propDescriptionText = love.graphics.newText(infoFont, {COLOR_YELLOW, prop.description})
+        love.graphics.draw(propDescriptionText, 25, 195)
+    end
+end
+
 function game:enter()
     -- Init entities
     self.entities = {}
     
-    -- Init timer
+    -- Init timers
     self.timer = 61
 
     -- Init hook
@@ -161,19 +288,31 @@ function game:enter()
 
     -- Init misc
     self.isShowBonus = false
-    self.showBonusTimer = 0
+    self.showBonusTimer = 1
 end
+
+function game:exit()
+    player:resetProps()
+end 
 
 function game:keypressed(key)
     if key == 'down' or key == 'k' then
-        if not hook.isGrabing then
+        if not hook.isShowBonus and not hook.isGrabing then
             hook.isGrabing = true
-            sounds['grabStart']:play()
+            sounds['GrabStart']:play()
         end
+    elseif key == 'up' or key == 'u' then
+        player:tryUseDynamite()
     elseif key == 'space' then
-        if player:reachGoal() then
+        if player:reachGoal()  then
             Gamestate.switch(showMadeGoal)
+        elseif DEBUG_MODE then
+            Gamestate.switch(gameOver)
         end
+    elseif key == 'v' and DEBUG_MODE then
+        -- Cheat
+        player.money4View = player:getGoal()
+        player.money = player:getGoal()
     end
 end
 
@@ -203,9 +342,9 @@ function game:update(dt)
     end
 
     if self.isShowBonus then
-        self.showBonusTimer = self.showBonusTimer + dt
-        if self.showBonusTimer >= 1 then
-            self.showBonusTimer = 0
+        self.showBonusTimer = self.showBonusTimer - dt
+        if self.showBonusTimer <= 0 then
+            self.showBonusTimer = 1
             self.isShowBonus = false
         end
     end
@@ -215,10 +354,10 @@ end
 function game:draw()
     -- Draw BGs
     love.graphics.draw(backgrounds['LevelCommonTop'])
-    love.graphics.draw(backgrounds[levels[player.level % TOTAL_LEVEL_COUNT + 1].type], 0, 40)
+    love.graphics.draw(backgrounds[levels[(player.level - 1) % TOTAL_LEVEL_COUNT + 1].type], 0, 40)
 
     -- Draw UI texts
-    local moneyText = love.graphics.newText(gameFont, {COLOR_DEEP_ORANGE, 'Money', COLOR_GREEN, ' $' .. player.money})
+    local moneyText = love.graphics.newText(gameFont, {COLOR_DEEP_ORANGE, 'Money', COLOR_GREEN, ' $' .. player.money4View})
     love.graphics.draw(moneyText, 5, 5)
     local goalText = love.graphics.newText(gameFont, {COLOR_DEEP_ORANGE, 'Goal', COLOR_GREEN, ' $' .. player:getGoal()})
     love.graphics.draw(goalText, 11, 15)
@@ -231,7 +370,7 @@ function game:draw()
         love.graphics.draw(reachGoalTipText, 200, 5)
     end
     if self.isShowBonus then
-        local bonusText = love.graphics.newText(gameFontBig, {COLOR_GREEN, '+$' .. player.currentBonus})
+        local bonusText = love.graphics.newText(gameFontBig, {COLOR_GREEN, '$' .. player.currentBonus})
         love.graphics.draw(bonusText, 90, 18)
     end
     -- Render player
@@ -242,13 +381,20 @@ function game:draw()
         entity:render()
     end 
 
+    -- Render dynamites
+    if player.dynamiteCount >= 1 then
+        for i = 1, player.dynamiteCount do
+            love.graphics.draw(sprites['DynamiteUI'], propsConfig['Dynamite'].uiPos[i].x, propsConfig['Dynamite'].uiPos[i].y)
+        end
+    end
+
     -- Render hook
     hook:render()
 end
 
 function gameOver:enter()
     -- Init game over text
-    self.gameOverTextContent = 'Game Over!'
+    self.gameOverTextContent = "You didn't reach the goal!"
 end 
 
 function gameOver:keypressed(key)
@@ -260,12 +406,12 @@ function gameOver:draw()
     love.graphics.draw(backgrounds['Goal'])
 
     -- Draw title
-    love.graphics.draw(backgrounds['Title'], WINDOW_WIDTH / 2 - backgrounds['Title']:getWidth() / 2, 20)
+    love.graphics.draw(sprites['Title'], WINDOW_WIDTH / 2 - sprites['Title']:getWidth() / 2, 20)
 
     -- Draw panel
-    love.graphics.draw(backgrounds['Panel'], WINDOW_WIDTH / 2 - backgrounds['Panel']:getWidth() / 2, 80)
+    love.graphics.draw(sprites['Panel'], WINDOW_WIDTH / 2 - sprites['Panel']:getWidth() / 2, 80)
 
     -- Draw gameOver text
     local gameOverText = love.graphics.newText(uiFont, {COLOR_YELLOW, self.gameOverTextContent})
-    love.graphics.draw(gameOverText, 110, 130)
+    love.graphics.draw(gameOverText, 50, 130)
 end 

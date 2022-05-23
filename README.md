@@ -24,22 +24,33 @@ Select Button -> Exit current level when you reach goal
 
 ![first goal](./pictures/screenshots_03_level01.png)
 
-## Pictures
+## Photos
 
-![menu](./pictures/pictures_01_main_menu.jpg)
+![menu](./pictures/photos_01_main_menu.jpg)
 
-![first goal](./pictures/pictures_02_first_goal.jpg)
+![first goal](./pictures/photos_02_first_goal.jpg)
 
-![first goal](./pictures/pictures_03_level01.jpg)
+![first goal](./pictures/photos_03_level01.jpg)
+
+## Release Notes
+
+2022/5/23 DEMO-2: 
+
+- Added new map entity: Diamond.
+- Added new systems: Shop system, Props system.
+- Added new levels: level-2 and level-3.
+- Fixed some bugs.
 
 ## TODO-List
 
-- [ ] More levels
-- [ ] More map entity types
-- [ ] Shop system
-- [ ] Props system
+- [x] More levels
+- [x] More map entity types
+- [x] Shop system
+- [x] Props system
 - [ ] High score system
 - [ ] Continue game system (aka. Persistent system)
+- [ ] All levels
+- [ ] Numerical balance adjustment
 
 
 ## License
