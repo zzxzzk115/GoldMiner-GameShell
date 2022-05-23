@@ -87,8 +87,10 @@ function Player:tryUseDynamite()
     if self.dynamiteCount > 0 then
         -- Destroy grabed entity
         hook.currentAnimation = hookIdleAnimation
-        hook.grabedEntity.isActive = false
-        hook.grabedEntity = nil
+        if hook.grabedEntity ~= nil then
+            hook.grabedEntity.isActive = false
+            hook.grabedEntity = nil
+        end
         
         -- Play sound
         sounds['Explosive']:play()
