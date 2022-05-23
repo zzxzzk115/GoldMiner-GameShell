@@ -12,7 +12,7 @@ Menu button -> Exit
 
 A button or Start button -> Menu Confirm or Buy
 
-X button or Up -> Use dynamite
+Y button or Up -> Use dynamite
 
 A button or Down -> Grab
 
