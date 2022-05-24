@@ -38,7 +38,7 @@ local entityConfig = {
     ['Diamond'] = {
         ['type'] = 'Basic',
         ['mass'] = 1.5,
-        ['bonus'] = 1000,
+        ['bonus'] = 600,
         ['bonusType'] = 'High'
     },
     ['QuestionBag'] = {
@@ -47,7 +47,12 @@ local entityConfig = {
         ['randomMassMax'] = 10,
         ['bonusBase'] = 50,
         ['randomBonusRatioMin'] = 1,
-        ['randomBonusRatioMax'] = 30,
+        ['randomBonusRatioMax'] = 14,
+        ['extraEffectChances'] = 0.2,
+        extraEffect = function() 
+            player.strength = math.min(6, player.strength * 3)
+            game.isShowStrength = true
+        end,
     },
 }
 
@@ -55,6 +60,8 @@ Player = Class{}
 
 function Player:init()
     self.level = 1
+    self.goal = 375
+    self.goalAddOn = 275
     self.money = 0
     self.strength = 1
     self.currentBonus = 0
@@ -65,32 +72,39 @@ function Player:init()
     self.hasLuckyClover = false
     self.hasRockCollectorsBook = false
     self.hasGemPolish = false
-    self.pos = vector(150, 7)
+    self.pos = vector(165, 39)
     self.currentAnimation = playerIdleAnimation
+    self.isUsingDynamite = false
+    self.usingDynamiteTimer = 0.39
 end
 
-function Player:getGoal()
-    if self.level == 1 then
-        return 650;
-    elseif self.level <= 3 then
-        return 650 * self.level + (125 * (self.level - 3));
-    else 
-        return 650 * self.level + 2 ^ self.level * 10 + 1150
+function Player:updateGoal()
+    if self.level > 1 and self.level <= 9 then
+        self.goalAddOn = self.goalAddOn + 270
     end
+    self.goal = self.goal + self.goalAddOn
+    return self.goal
 end
 
 function Player:reachGoal()
-    return self.money >= self:getGoal()
+    return self.money >= self.goal
 end
 
 function Player:tryUseDynamite()
     if self.dynamiteCount > 0 then
+        -- Set FX active
+        hook.explosiveFX.isActive = true
+
         -- Destroy grabed entity
         hook.currentAnimation = hookIdleAnimation
         if hook.grabedEntity ~= nil then
             hook.grabedEntity.isActive = false
             hook.grabedEntity = nil
         end
+
+        -- Set animation
+        self.isUsingDynamite = true
+        self.currentAnimation = playerUseDynamiteAnimation
         
         -- Play sound
         sounds['Explosive']:play()
@@ -100,19 +114,33 @@ function Player:tryUseDynamite()
     end
 end
 
-function Player:resetProps()
+function Player:syncView()
+    self.money4View = self.money
+end
+
+function Player:reset()
+    self.strength = 1
     self.hasStrengthDrink = false
     self.hasLuckyClover = false
     self.hasRockCollectorsBook = false
     self.hasGemPolish = false
+    
 end
 
 function Player:update(dt)
     self.currentAnimation:update(dt)
+
+    if self.isUsingDynamite then
+        self.usingDynamiteTimer = self.usingDynamiteTimer - dt
+        if self.usingDynamiteTimer <= 0 then
+            self.isUsingDynamite = false
+            self.usingDynamiteTimer = 0.39
+        end
+    end
 end
 
 function Player:render()
-    love.graphics.draw(playerSheet, playerQuads[self.currentAnimation:getCurrentFrame()], self.pos.x, self.pos.y)
+    love.graphics.draw(playerSheet, playerQuads[self.currentAnimation:getCurrentFrame()], self.pos.x, self.pos.y, 0, 1, 1, PLAYER_WIDTH / 2, PLAYER_HEIGHT)
 end
 
 Hook = Class{}
@@ -133,6 +161,7 @@ function Hook:init()
     self.isShowBonus = false
     self.isStopMoving = false
     self.currentAnimation = hookIdleAnimation
+    self.explosiveFX = FX(explosiveFXSheet, explosiveFXQuads, explosiveFXDefaultAnimation, EXPLOSIVE_FX_WIDTH, EXPLOSIVE_FX_HEIGHT, 0.5)
     sounds['HookReset']:play()
 end
 
@@ -165,6 +194,8 @@ function Hook:update(dt)
                 self.angle = self.angle + dt * HOOK_ROTATE_SPEED
             end
         end
+        -- Update FX
+        self.explosiveFX:update(dt)
         -- Update pos
         self.dir = vector(0, 1):rotated(degrees2radians(self.angle))
         self.destPos = self.originPos + self.dir * self.length
@@ -181,18 +212,21 @@ function Hook:update(dt)
         
         -- Grab end
         if self.length >= HOOK_MAX_LENGTH or self.grabedEntity ~= nil then
+            self.explosiveFX.followEntity = self.grabedEntity
             self.isBacking = true
         end
 
         -- Hook return
         if self.isBacking then
             if self.grabedEntity ~= nil then
-                self.length = self.length - dt * HOOK_GRAB_SPEED / self.grabedEntity.mass
+                self.length = self.length - dt * HOOK_GRAB_SPEED * player.strength / self.grabedEntity.mass
             else
                 self.length = self.length - dt * HOOK_GRAB_SPEED
             end
             sounds['GrabBack']:play()
-            player.currentAnimation = playerGrabBackAnimation
+            if not player.isUsingDynamite then
+                player.currentAnimation = playerGrabBackAnimation
+            end
         end
     end
 
@@ -200,13 +234,21 @@ function Hook:update(dt)
     if self.length <= 0 and self.isBacking then
         if self.grabedEntity ~= nil then
             if self.bonusTimer == 1 then
-                -- Add bonus
-                player.money = player.money + self.grabedEntity.bonus
-                -- Play sound and set show bonus
-                sounds['Money']:play()
-                player.currentBonus = self.grabedEntity.bonus
-                game.isShowBonus = true
-                self.isShowBonus = true
+                -- If entity has extra effect
+                local extraEffectChancesRandomValue = math.random(100) / 100
+                if self.grabedEntity.extraEffectChances ~= nil and self.grabedEntity.extraEffectChances >= extraEffectChancesRandomValue then
+                    self.grabedEntity.extraEffect()
+                    sounds['High']:play()
+                else
+                    -- Add bonus
+                    player.money = player.money + self.grabedEntity.bonus
+                    -- Play sound and set show bonus
+                    sounds['Money']:play()
+                    player.currentBonus = self.grabedEntity.bonus
+                    game.isShowBonus = true
+                    self.isShowBonus = true
+                end
+                
                 -- Stop moving
                 self.isStopMoving = true
                 -- Stop grabing
@@ -221,6 +263,7 @@ function Hook:update(dt)
                 player.money4View = player.money4View + self.grabedEntity.bonus
                 -- Set not active
                 self.grabedEntity.isActive = false
+                self.grabedEntity = nil
                 -- Reset bonus timer
                 self.bonusTimer = 1
                 -- Reset hook
@@ -252,7 +295,51 @@ function Hook:render()
         -- X offset and Y offset
         HOOK_WIDTH / 2, 0
         )
+    -- Draw FX
+    self.explosiveFX:draw()
 end
+
+FX = Class{}
+
+function FX:init(sheet, quads, animation, width, height, timer, followEntity, offset)
+    self.sheet = sheet
+    self.quads = quads
+    self.animation = animation
+    self.width = width
+    self.height = height
+    self.isActive = false
+    self.pos = vector(0, 0)
+    self.timerCache = timer
+    self.timer = timer
+    if offset ~= nil then
+        self.offset = offset
+    else
+        self.offset = vector(width/2, height/2)
+    end
+    self.followEntity = followEntity
+end
+
+function FX:update(dt)
+    if not self.isActive then
+        return
+    end
+    self.timer = self.timer - dt
+    if self.timer <= 0 then
+        self.isActive = false
+        self.timer = self.timerCache
+    end
+    self.animation:update(dt)
+    if self.followEntity ~= nil then
+        self.pos = self.followEntity.pos
+    end
+end
+
+function FX:draw()
+    if not self.isActive then
+        return
+    end
+    love.graphics.draw(self.sheet, self.quads[self.animation:getCurrentFrame()], self.pos.x, self.pos.y, degrees2radians(hook.angle), 1, 1, self.offset.x, self.offset.y)
+end 
 
 BasicMapObject = Class{}
 
@@ -269,14 +356,22 @@ function BasicMapObject:init(type, pos)
     self.collisionCircleCenterPos = self.pos + vector(self.width / 2, self.height / 2)
     self.collisionCircleRadius = (self.width / 2 + self.height / 2) / 2
     self.isTinyObject = self.collisionCircleRadius < hook.collisionCircleRadius
+
+    if self.type == 'BigGold' then
+        self.fx = FX(bigGoldFXSheet, bigGoldFXQuads, bigGoldFXDefaultAnimation, BIG_GOLD_FX_WIDTH, BIG_GOLD_FX_HEIGHT, 0.5, self)
+    end
 end
 
 function BasicMapObject:tryTakeEffect()
+    if self.type == 'BigGold' then
+        self.fx.isActive = true
+    end 
+
     if player.hasStrengthDrink then
-        self.mass = self.mass / 2
+        self.mass = self.mass / 1.5
     end
     if player.hasLuckyClover and self.type == 'QuestionBag' then
-        self.bonus = self.bonus * 2
+        self.extraEffectChances = self.extraEffectChances * 2
     end
     if player.hasRockCollectorsBook and (self.type == 'MiniRock' or self.type == 'NormalRock' or self.type == 'BigRock') then
             self.bonus = self.bonus * 3
@@ -290,6 +385,10 @@ function BasicMapObject:update(dt)
     if not self.isActive then
         return
     end
+
+    if self.type == 'BigGold' then
+        self.fx:update(dt)
+    end 
 
     -- Update collision circle pos
     if self.isGrabedByHook then
@@ -320,6 +419,11 @@ function BasicMapObject:render()
     if not self.isActive then
         return
     end
+
+    if self.type == 'BigGold' then
+        self.fx:draw()
+    end 
+
     -- Draw collision circle for debugging
     -- love.graphics.circle('fill', self.collisionCircleCenterPos.x, self.collisionCircleCenterPos.y, self.collisionCircleRadius)
     if self.isGrabedByHook then
@@ -351,6 +455,8 @@ function RandomEffectMapObject:init(type, pos)
     self.collisionCircleCenterPos = self.pos + vector(self.width / 2, self.height / 2)
     self.collisionCircleRadius = (self.width / 2 + self.height / 2) / 2
     self.isTinyObject = self.collisionCircleRadius < hook.collisionCircleRadius
+    self.extraEffectChances = entityConfig[self.type].extraEffectChances
+    self.extraEffect = entityConfig[self.type].extraEffect
 end
 
 function createEntityInstance(type, pos)

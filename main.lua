@@ -38,6 +38,9 @@ function love.load()
         ['Menu'] = love.graphics.newImage('images/bg_start_menu.png'),
         ['LevelCommonTop'] = love.graphics.newImage('images/bg_top.png'),
         ['LevelA'] = love.graphics.newImage('images/bg_level_A.png'),
+        ['LevelB'] = love.graphics.newImage('images/bg_level_B.png'),
+        ['LevelC'] = love.graphics.newImage('images/bg_level_C.png'),
+        ['LevelD'] = love.graphics.newImage('images/bg_level_D.png'),
         ['Goal'] = love.graphics.newImage('images/bg_goal.png'),
         ['Shop'] = love.graphics.newImage('images/bg_shop.png')
     }
@@ -58,6 +61,7 @@ function love.load()
         ['Title'] = love.graphics.newImage('images/text_goldminer.png'),
         ['Selector'] = love.graphics.newImage('images/ui_selector.png'),
         ['DynamiteUI'] = love.graphics.newImage('images/ui_dynamite.png'),
+        ['Strength!'] = love.graphics.newImage('images/text_strength.png'),
         -- Shop
         ['Table'] = love.graphics.newImage('images/shop_table.png'),
         ['Dynamite'] = love.graphics.newImage('images/dynamite.png'),
@@ -80,6 +84,14 @@ function love.load()
     }
     playerGrabBackAnimation = Animation {
         frames = {1, 2, 3},
+        interval = 0.13
+    }
+    playerUseDynamiteAnimation = Animation {
+        frames = {4, 5, 6},
+        interval = 0.13
+    }
+    playerStrengthenAnimation = Animation {
+        frames = {7, 8, 7, 8},
         interval = 0.13
     }
 
@@ -109,6 +121,33 @@ function love.load()
     hookGrabMiniAnimation = Animation {
         frames = {3},
         interval = 1
+    }
+
+    -- Init mole's sheet and animations.
+    moleSheet = love.graphics.newImage('images/mole_sheet.png')
+    moleQuads = generateQuads(moleSheet, MOLE_WIDTH, MOLE_HEIGHT)
+    moldIdleAnimation = Animation {
+        frames = {1},
+        interval = 1
+    }
+    moleMoveAnimation = Animation {
+        frames = {1, 2, 3, 4, 5, 6, 7},
+        interval = 0.1
+    }
+
+    -- Init FXs
+    bigGoldFXSheet = love.graphics.newImage('images/gold_big_fx_sheet.png')
+    bigGoldFXQuads = generateQuads(bigGoldFXSheet, BIG_GOLD_FX_WIDTH, BIG_GOLD_FX_HEIGHT)
+    bigGoldFXDefaultAnimation = Animation {
+        frames = {1, 2, 3, 4, 5, 6, 7, 8, 9},
+        interval = 0.06
+    }
+
+    explosiveFXSheet = love.graphics.newImage('images/explosive_fx_sheet.png')
+    explosiveFXQuads = generateQuads(explosiveFXSheet, EXPLOSIVE_FX_WIDTH, EXPLOSIVE_FX_HEIGHT)
+    explosiveFXDefaultAnimation = Animation {
+        frames = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12},
+        interval = 0.06
     }
 
     -- Init RNG.

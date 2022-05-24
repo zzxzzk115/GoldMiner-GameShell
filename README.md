@@ -40,6 +40,14 @@ Left and Right -> Select the shop item you wanna buy
 
 ## Release Notes
 
+2022/5/24 DEMO-3:
+
+- Added FXs.
+- Added Strength! effect.
+- Added miner animation
+- Fixed #1
+- Numerical balance adjustment
+
 2022/5/23 DEMO-2: 
 
 - Added new map entity: Diamond.
@@ -56,7 +64,7 @@ Left and Right -> Select the shop item you wanna buy
 - [ ] High score system
 - [ ] Continue game system (aka. Persistent system)
 - [ ] All levels
-- [ ] Numerical balance adjustment
+- [x] Numerical balance adjustment
 
 
 ## License

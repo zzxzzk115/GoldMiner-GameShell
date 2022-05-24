@@ -82,6 +82,8 @@ function showNextGoal:enter()
         self.goalTextContent = 'Your Next Goal is'
     end
 
+    player:updateGoal()
+
     -- Play goal bgm
     musics['Goal']:play()
 end 
@@ -103,7 +105,7 @@ function showNextGoal:draw()
     love.graphics.draw(sprites['Panel'], WINDOW_WIDTH / 2 - sprites['Panel']:getWidth() / 2, 80)
 
     -- Draw next goal text
-    local nextGoalText = love.graphics.newText(uiFont, {COLOR_YELLOW, self.goalTextContent, COLOR_GREEN, '\n\n$' .. player:getGoal()})
+    local nextGoalText = love.graphics.newText(uiFont, {COLOR_YELLOW, self.goalTextContent, COLOR_GREEN, '\n\n$' .. player.goal})
     love.graphics.draw(nextGoalText, 70, 100)
 end
 
@@ -156,7 +158,7 @@ function shop:enter()
     local itemIndex = 1
     for propIndex, prop in ipairs(props) do
         -- Random price
-        propsConfig[prop].price = math.random(10, 150) * player.level - 9
+        propsConfig[prop].price = propsConfig[prop].getPrice(player.level)
         propsConfig[prop].pos = self.itemsStartBottomPos + vector((propIndex - 1) * SHOP_ITEM_PADDING, 0)
         local add = (math.random(1, 3) >= 2)
         if add then
@@ -186,12 +188,6 @@ function shop:keypressed(key)
     if key == 'space' then
         -- Finish shopping
         self.isPlayerFinishShopping = true
-        if not self.isPlayerBought then
-            self.dialogueTextContent = '  :('
-            self.shopkeeperAnimation = shopkeeperSadAnimation
-        else
-            self.dialogueTextContent = 'Thank you for your patronage!\nGood luck!'
-        end
     elseif key == 'k' or key == 'return' or key == 'enter' then
         -- Buy prop
         local prop = self.items[self.selectorIndex]
@@ -206,7 +202,7 @@ function shop:keypressed(key)
                 player.money = player.money - propsConfig[prop].price
                 player.money4View = player.money4View - propsConfig[prop].price
                 -- Take effect
-                propsConfig[prop].effectFunction(player)
+                propsConfig[prop].effect(player)
                 -- Remove
                 table.remove(self.items, self.selectorIndex)
                 table.remove(self.selectorInfo, self.selectorIndex)
@@ -225,7 +221,17 @@ end
 function shop:update(dt)
     self.shopkeeperAnimation:update(dt)
 
+    if #self.items <= 0 then
+        self.isPlayerFinishShopping = true
+    end
+
     if self.isPlayerFinishShopping then
+        if not self.isPlayerBought then
+            self.dialogueTextContent = '  :('
+            self.shopkeeperAnimation = shopkeeperSadAnimation
+        else
+            self.dialogueTextContent = 'Thank you for your patronage!\nGood luck!'
+        end
         -- Start timer
         self.finishShoppingTimer = self.finishShoppingTimer - dt
 
@@ -262,7 +268,7 @@ function shop:draw()
     end
 
     -- Draw selector and description
-    if self.selectorInfo[self.selectorIndex] ~= nil then
+    if self.selectorInfo[self.selectorIndex] ~= nil and not self.isPlayerFinishShopping then
         local prop = propsConfig[self.selectorInfo[self.selectorIndex]]
         love.graphics.draw(sprites['Selector'], prop.pos.x, 130, 0, 1, 1, sprites['Selector']:getWidth() / 2, sprites['Selector']:getHeight())
         local propDescriptionText = love.graphics.newText(infoFont, {COLOR_YELLOW, prop.description})
@@ -283,16 +289,21 @@ function game:enter()
     -- Reset player animation
     player.currentAnimation = playerIdleAnimation
 
+    -- Sync player state
+    player:syncView()
+
     -- Load level
     levels.loadLevel(player.level, self.entities)
 
     -- Init misc
     self.isShowBonus = false
+    self.isShowStrength = false
     self.showBonusTimer = 1
+    self.showStrengthTimer = 1
 end
 
-function game:exit()
-    player:resetProps()
+function game:leave()
+    player:reset()
 end 
 
 function game:keypressed(key)
@@ -311,8 +322,8 @@ function game:keypressed(key)
         end
     elseif key == 'v' and DEBUG_MODE then
         -- Cheat
-        player.money4View = player:getGoal()
-        player.money = player:getGoal()
+        player.money4View = player.goal
+        player.money = player.goal
     end
 end
 
@@ -349,6 +360,15 @@ function game:update(dt)
         end
     end
 
+    if self.isShowStrength then
+        player.currentAnimation = playerStrengthenAnimation
+        self.showStrengthTimer = self.showStrengthTimer - dt
+        if self.showStrengthTimer <= 0 then
+            self.showStrengthTimer = 1
+            self.isShowStrength = false
+            player.currentAnimation = playerIdleAnimation
+        end
+    end
 end
 
 function game:draw()
@@ -359,7 +379,7 @@ function game:draw()
     -- Draw UI texts
     local moneyText = love.graphics.newText(gameFont, {COLOR_DEEP_ORANGE, 'Money', COLOR_GREEN, ' $' .. player.money4View})
     love.graphics.draw(moneyText, 5, 5)
-    local goalText = love.graphics.newText(gameFont, {COLOR_DEEP_ORANGE, 'Goal', COLOR_GREEN, ' $' .. player:getGoal()})
+    local goalText = love.graphics.newText(gameFont, {COLOR_DEEP_ORANGE, 'Goal', COLOR_GREEN, ' $' .. player.goal})
     love.graphics.draw(goalText, 11, 15)
     local timeText = love.graphics.newText(gameFont, {COLOR_DEEP_ORANGE, 'Time: ', COLOR_ORANGE, tointeger(self.timer)})
     love.graphics.draw(timeText, 260, 15)
@@ -372,6 +392,9 @@ function game:draw()
     if self.isShowBonus then
         local bonusText = love.graphics.newText(gameFontBig, {COLOR_GREEN, '$' .. player.currentBonus})
         love.graphics.draw(bonusText, 90, 18)
+    end
+    if self.isShowStrength then
+        love.graphics.draw(sprites['Strength!'], 80, 10)
     end
     -- Render player
     player:render()
