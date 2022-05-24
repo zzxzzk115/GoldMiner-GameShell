@@ -1,6 +1,55 @@
 require 'Entities'
 
 local levels = {
+    -- Level -1 for debugging
+    [-1] = {
+        ['type'] = 'LevelA',
+        ['entities'] = {
+            {
+                ['type'] = 'MiniGold',
+                ['pos'] = { ['x'] = 80, ['y'] = 80}
+            },
+            {
+                ['type'] = 'NormalGold',
+                ['pos'] = { ['x'] = 105, ['y'] = 150}
+            },
+            {
+                ['type'] = 'NormalGoldPlus',
+                ['pos'] = { ['x'] = 120, ['y'] = 100}
+            },
+            {
+                ['type'] = 'BigGold',
+                ['pos'] = { ['x'] = 20, ['y'] = 130}
+            },
+            {
+                ['type'] = 'MiniRock',
+                ['pos'] = { ['x'] = 75, ['y'] = 130}
+            },
+            {
+                ['type'] = 'NormalRock',
+                ['pos'] = { ['x'] = 130, ['y'] = 200}
+            },
+            {
+                ['type'] = 'QuestionBag',
+                ['pos'] = { ['x'] = 105, ['y'] = 210}
+            },
+            {
+                ['type'] = 'Diamond',
+                ['pos'] = { ['x'] = 243, ['y'] = 182 }
+            },
+            {
+                ['type'] = 'Mole',
+                ['pos'] = { ['x'] = 200, ['y'] = 150 },
+                ['dir'] = 'Left',
+            },
+            {
+                ['type'] = 'MoleWithDiamond',
+                ['pos'] = { ['x'] = 300, ['y'] = 50 },
+                ['dir'] = 'Left',
+            },
+        }
+    },
+
     -- Level 1
     [1] = {
         ['type'] = 'LevelA',
@@ -243,8 +292,14 @@ local levels = {
 }
 
 function levels.loadLevel(level, entities)
-    for entityIndex, entity in ipairs(levels[(level - 1) % TOTAL_LEVEL_COUNT + 1].entities) do
-        entityInstance = createEntityInstance(entity.type, entity.pos)
+    local currentLevel = level
+    if DEBUG_MODE then
+        currentLevel = -1
+    else
+        currentLevel = (currentLevel - 1) % TOTAL_LEVEL_COUNT + 1
+    end
+    for entityIndex, entity in ipairs(levels[currentLevel].entities) do
+        entityInstance = createEntityInstance(entity.type, entity.pos, entity.dir)
         table.insert(entities, entityInstance)
     end 
 end

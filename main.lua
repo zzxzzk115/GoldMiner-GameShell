@@ -48,6 +48,7 @@ function love.load()
         -- Entities
         ['MiniGold'] = love.graphics.newImage('images/gold_mini.png'),
         ['NormalGold'] = love.graphics.newImage('images/gold_normal.png'),
+        ['NormalGoldPlus'] = love.graphics.newImage('images/gold_normal_plus.png'),
         ['BigGold'] = love.graphics.newImage('images/gold_big.png'),
         ['MiniRock'] = love.graphics.newImage('images/rock_mini.png'),
         ['NormalRock'] = love.graphics.newImage('images/rock_normal.png'),
@@ -126,14 +127,33 @@ function love.load()
     -- Init mole's sheet and animations.
     moleSheet = love.graphics.newImage('images/mole_sheet.png')
     moleQuads = generateQuads(moleSheet, MOLE_WIDTH, MOLE_HEIGHT)
-    moldIdleAnimation = Animation {
+    moleIdleAnimation = Animation {
         frames = {1},
         interval = 1
     }
     moleMoveAnimation = Animation {
         frames = {1, 2, 3, 4, 5, 6, 7},
-        interval = 0.1
+        interval = 0.07
     }
+    entityConfig['Mole'].sheet = moleSheet
+    entityConfig['Mole'].quads = moleQuads
+    entityConfig['Mole'].idleAnimation = moleIdleAnimation
+    entityConfig['Mole'].moveAnimation = moleMoveAnimation
+
+    moleWithDiamondSheet = love.graphics.newImage('images/mole_with_diamond_sheet.png')
+    moleWithDiamondQuads = generateQuads(moleWithDiamondSheet, MOLE_WIDTH, MOLE_HEIGHT)
+    moleWithDiamondIdleAnimation = Animation {
+        frames = {1},
+        interval = 1
+    }
+    moleWithDiamondMoveAnimation = Animation {
+        frames = {1, 2, 3, 4, 5, 6, 7},
+        interval = 0.07
+    }
+    entityConfig['MoleWithDiamond'].sheet = moleWithDiamondSheet
+    entityConfig['MoleWithDiamond'].quads = moleWithDiamondQuads
+    entityConfig['MoleWithDiamond'].idleAnimation = moleWithDiamondIdleAnimation
+    entityConfig['MoleWithDiamond'].moveAnimation = moleWithDiamondMoveAnimation
 
     -- Init FXs
     bigGoldFXSheet = love.graphics.newImage('images/gold_big_fx_sheet.png')

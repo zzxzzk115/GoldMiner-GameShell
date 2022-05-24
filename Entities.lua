@@ -1,4 +1,4 @@
-local entityConfig = {
+entityConfig = {
     ['MiniGold'] = {
         ['type'] = 'Basic',
         ['mass'] = 2,
@@ -7,8 +7,14 @@ local entityConfig = {
     },
     ['NormalGold'] = {
         ['type'] = 'Basic',
-        ['mass'] = 4,
+        ['mass'] = 3.5,
         ['bonus'] = 100,
+        ['bonusType'] = 'Normal'
+    },
+    ['NormalGoldPlus'] = {
+        ['type'] = 'Basic',
+        ['mass'] = 5,
+        ['bonus'] = 250,
         ['bonusType'] = 'Normal'
     },
     ['BigGold'] = {
@@ -50,9 +56,41 @@ local entityConfig = {
         ['randomBonusRatioMax'] = 14,
         ['extraEffectChances'] = 0.2,
         extraEffect = function() 
-            player.strength = math.min(6, player.strength * 3)
-            game.isShowStrength = true
+            if math.random(100) <= 20 then
+                player.dynamiteCount = player.dynamiteCount + 1
+            else
+                player.strength = math.min(6, player.strength * 3)
+                game.isShowStrength = true
+            end
         end,
+    },
+    ['Mole'] = {
+        ['type'] = 'MoveAround',
+        ['mass'] = 1.5,
+        ['bonus'] = 2,
+        ['speed'] = 0.25,
+        ['width'] = MOLE_WIDTH,
+        ['height'] = MOLE_HEIGHT,
+        ['moveRange'] = 135,
+        ['bonusType'] = 'Low',
+        ['sheet'] = nil,
+        ['quads'] = nil,
+        ['idleAnimation'] = nil,
+        ['moveAnimation'] = nil,
+    },
+    ['MoleWithDiamond'] = {
+        ['type'] = 'MoveAround',
+        ['mass'] = 1.5,
+        ['bonus'] = 602,
+        ['speed'] = 0.25,
+        ['width'] = MOLE_WIDTH,
+        ['height'] = MOLE_HEIGHT,
+        ['moveRange'] = 135,
+        ['bonusType'] = 'High',
+        ['sheet'] = nil,
+        ['quads'] = nil,
+        ['idleAnimation'] = nil,
+        ['moveAnimation'] = nil,
     },
 }
 
@@ -66,7 +104,6 @@ function Player:init()
     self.strength = 1
     self.currentBonus = 0
     self.money4View = 0
-    self.bombCount = 0
     self.dynamiteCount = 0
     self.hasStrengthDrink = false
     self.hasLuckyClover = false
@@ -344,6 +381,15 @@ end
 BasicMapObject = Class{}
 
 function BasicMapObject:init(type, pos)
+    self.width = sprites[type]:getWidth()
+    self.height = sprites[type]:getHeight()
+    self:setup(type, pos)
+    if self.type == 'BigGold' then
+        self.fx = FX(bigGoldFXSheet, bigGoldFXQuads, bigGoldFXDefaultAnimation, BIG_GOLD_FX_WIDTH, BIG_GOLD_FX_HEIGHT, 0.5, self)
+    end
+end
+
+function BasicMapObject:setup(type, pos)
     self.type = type
     self.pos = vector(pos.x, pos.y)
     self.mass = entityConfig[self.type].mass
@@ -351,15 +397,9 @@ function BasicMapObject:init(type, pos)
     self.bonusType = entityConfig[self.type].bonusType
     self.isActive = true
     self.isGrabedByHook = false
-    self.width = sprites[self.type]:getWidth()
-    self.height = sprites[self.type]:getHeight()
     self.collisionCircleCenterPos = self.pos + vector(self.width / 2, self.height / 2)
     self.collisionCircleRadius = (self.width / 2 + self.height / 2) / 2
     self.isTinyObject = self.collisionCircleRadius < hook.collisionCircleRadius
-
-    if self.type == 'BigGold' then
-        self.fx = FX(bigGoldFXSheet, bigGoldFXQuads, bigGoldFXDefaultAnimation, BIG_GOLD_FX_WIDTH, BIG_GOLD_FX_HEIGHT, 0.5, self)
-    end
 end
 
 function BasicMapObject:tryTakeEffect()
@@ -401,7 +441,7 @@ function BasicMapObject:update(dt)
         hook.collisionCircleCenterPos,
         self.collisionCircleRadius,
         hook.collisionCircleRadius) then
-            if hook.grabedEntity == nil then
+            if hook.grabedEntity == nil and not hook.isBacking then
                 self:tryTakeEffect()
                 self.isGrabedByHook = true
                 hook.grabedEntity = self
@@ -413,7 +453,7 @@ function BasicMapObject:update(dt)
                 end
             end
     end
-end 
+end
 
 function BasicMapObject:render()
     if not self.isActive then
@@ -459,11 +499,105 @@ function RandomEffectMapObject:init(type, pos)
     self.extraEffect = entityConfig[self.type].extraEffect
 end
 
-function createEntityInstance(type, pos)
+MoveAroundMapObject = Class{__includes = BasicMapObject}
+
+function MoveAroundMapObject:init(type, pos, dir)
+    self.speed = entityConfig[type].speed
+    self.width = entityConfig[type].width
+    self.height = entityConfig[type].height
+    self.moveRange = entityConfig[type].moveRange
+    self.sheet = entityConfig[type].sheet
+    self.quads = entityConfig[type].quads
+    self.idleAnimation = entityConfig[type].idleAnimation
+    self.moveAnimation = entityConfig[type].moveAnimation
+    self.currentAnimation = self.idleAnimation
+    self.dir = dir
+    self.idleTimer = 1
+    self.isMove = false
+    self:setup(type, pos)
+    -- Init dest pos
+    if self.dir == 'Left' then
+        self.dirVec = vector(-1, 0)
+    elseif self.dir == 'Right' then
+        self.dirVec = vector(1, 0)
+    end
+    self.destPos = vector(self.pos.x + self.dirVec.x * self.moveRange, self.pos.y)
+end
+
+function MoveAroundMapObject:update(dt)
+    if not self.isActive then
+        return
+    end
+
+    self.currentAnimation:update(dt)
+
+    -- Update collision circle pos
+    if self.isGrabedByHook then
+        self.pos = hook.collisionCircleCenterPos
+    end
+    self.collisionCircleCenterPos = self.pos
+
+    -- Collision detect
+    if checkCircleCollision(self.collisionCircleCenterPos,
+        hook.collisionCircleCenterPos,
+        self.collisionCircleRadius,
+        hook.collisionCircleRadius) then
+            if hook.grabedEntity == nil and not hook.isBacking then
+                self:tryTakeEffect()
+                self.isGrabedByHook = true
+                hook.grabedEntity = self
+                sounds[self.bonusType]:play()
+                if self.isTinyObject then
+                    hook.currentAnimation = hookGrabMiniAnimation
+                else
+                    hook.currentAnimation = hookGrabNormalAnimation
+                end
+            end
+    end
+
+    if not self.isMove then
+        self.currentAnimation = self.idleAnimation
+        self.idleTimer = self.idleTimer - dt
+    end
+    
+    -- Stop Idle, start to move around
+    if self.idleTimer <= 0 then
+        self.currentAnimation = self.moveAnimation
+        self.isMove = true
+        self.idleTimer = 1
+    end
+
+    if self.isMove then
+        
+        self.pos = self.pos + self.dirVec * self.speed
+        if math.abs(self.pos.x - self.destPos.x) <= 1 then
+            self.isMove = false
+            self.dirVec.x = self.dirVec.x * -1
+            self.destPos = vector(self.pos.x + self.dirVec.x * self.moveRange, self.pos.y)
+        end
+    end
+
+end
+
+function MoveAroundMapObject:render()
+    if not self.isActive then
+        return
+    end
+
+    if self.isGrabedByHook then
+        love.graphics.draw(self.sheet, self.quads[self.currentAnimation:getCurrentFrame()], self.pos.x, self.pos.y, degrees2radians(hook.angle), -self.dirVec.x, 1, self.width / 2, self.height / 2)
+    else
+        love.graphics.draw(self.sheet, self.quads[self.currentAnimation:getCurrentFrame()], self.pos.x, self.pos.y, 0, -self.dirVec.x, 1, self.width / 2, self.height / 2)
+    end
+end
+
+function createEntityInstance(type, pos, dir)
     if entityConfig[type].type == 'Basic' then 
         entityInstance = BasicMapObject(type, pos)
     elseif entityConfig[type].type == 'RandomEffect' then
         entityInstance = RandomEffectMapObject(type, pos)
+    elseif entityConfig[type].type == 'MoveAround' then
+        entityInstance = MoveAroundMapObject(type, pos, dir)
     end
     return entityInstance
 end
