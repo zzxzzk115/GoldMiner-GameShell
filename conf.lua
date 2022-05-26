@@ -34,8 +34,6 @@ COLOR_ORANGE = {239/255, 108/255, 0/255}
 COLOR_DEEP_ORANGE = {194/255, 136/255, 4/255}
 COLOR_GREEN = {67/255, 160/255, 71/255}
 
-TOTAL_LEVEL_COUNT = 3
-
 DEBUG_MODE = false
 SHOW_BOUNDING_VOLUME = false
 TEST_LEVEL = false
@@ -49,5 +47,4 @@ function love.conf(t)
     t.window.borderless = true              -- Remove all border visuals from the window (boolean)
     t.window.resizable = false              -- Let the window be user-resizable (boolean)
     t.window.fullscreen = false             -- Enable fullscreen (boolean)
-    t.window.vsync = 1                      -- Vertical sync mode (number)
 end

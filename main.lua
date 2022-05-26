@@ -2,11 +2,15 @@ Gamestate = require 'hump.gamestate'
 Class = require 'hump.class'
 vector = require 'hump.vector'
 lume = require 'lume'
+tick = require 'tick'
 require 'Util'
 require 'GameStates'
 require 'Animation'
 
 function love.load()
+    -- Set FPS
+    tick.framerate = 60
+
     -- Init fonts
     defaultFont = love.graphics.getFont()
     infoFont = love.graphics.newFont('fonts/Pixel-Square-10-1.ttf', 10)
