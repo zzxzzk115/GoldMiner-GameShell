@@ -4,7 +4,7 @@ The classic game remake. Build for GameShell. Made with [LÖVE](https://love2d.o
 
 The project uses [hump](https://github.com/vrld/hump) and [lume](https://github.com/rxi/lume)  for utility functions.
 
-The project is in demo stage.
+Download the latest Release [here](https://github.com/zzxzzk115/GoldMiner-GameShell/releases/latest).
 
 ## How to play
 
