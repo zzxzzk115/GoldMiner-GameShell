@@ -304,6 +304,7 @@ function Hook:update(dt)
                     self.grabedEntity.extraEffect()
                     sounds['High']:play()
                 else
+                    self.grabedEntity.extraEffectChances = nil
                     -- Add bonus
                     player.money = player.money + self.grabedEntity.bonus
                     -- Play sound and set show bonus
@@ -445,11 +446,12 @@ function BasicMapObject:tryTakeEffect()
     if player.hasRockCollectorsBook and (self.type == 'MiniRock' or self.type == 'NormalRock' or self.type == 'BigRock') then
             self.bonus = self.bonus * 3
     end
-    if player.hasGemPolish and self.type == 'Diamond' then
-        self.bonus = self.bonus * 1.5
-    end
-    if self.type == 'MoleWithDiamond' then
-        self.bonus = (self.bonus - entityConfig['Mole'].bonus) * 1.5 + entityConfig['Mole'].bonus
+    if player.hasGemPolish then
+        if self.type == 'Diamond' then
+            self.bonus = self.bonus * 1.5
+        elseif self.type == 'MoleWithDiamond' then
+            self.bonus = (self.bonus - entityConfig['Mole'].bonus) * 1.5 + entityConfig['Mole'].bonus
+        end
     end
 end
 
