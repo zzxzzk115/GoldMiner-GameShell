@@ -324,7 +324,9 @@ function Hook:update(dt)
             -- If times up, then reset hook
             if self.bonusTimer <= 0 then
                 -- Add bonus 4 View
-                player.money4View = player.money4View + self.grabedEntity.bonus
+                if self.grabedEntity.extraEffectChances == nil then
+                    player.money4View = player.money4View + self.grabedEntity.bonus
+                end
                 -- Set not active
                 self.grabedEntity.isActive = false
                 self.grabedEntity = nil
