@@ -50,14 +50,14 @@ entityConfig = {
     ['QuestionBag'] = {
         ['type'] = 'RandomEffect',
         ['randomMassMin'] = 1,
-        ['randomMassMax'] = 10,
+        ['randomMassMax'] = 9,
         ['bonusBase'] = 50,
         ['randomBonusRatioMin'] = 1,
-        ['randomBonusRatioMax'] = 14,
+        ['randomBonusRatioMax'] = 16,
         ['extraEffectChances'] = 0.2,
         extraEffect = function() 
             if math.random(100) <= 20 then
-                player.dynamiteCount = player.dynamiteCount + 1
+                player:addDynamite()
             else
                 player.strength = math.min(6, player.strength * 1.5 + 1)
                 game.isShowStrength = true
@@ -347,7 +347,9 @@ function Hook:render()
     love.graphics.setColor(66/255, 66/255, 66/255, 1)
     love.graphics.line(self.originPos.x, self.originPos.y, self.destPos.x, self.destPos.y)
     -- Draw collision circle for debugging
-    -- love.graphics.circle('fill', self.collisionCircleCenterPos.x, self.collisionCircleCenterPos.y, self.collisionCircleRadius)
+    if DEBUG_MODE and SHOW_BOUNDING_VOLUME then
+        love.graphics.circle('fill', self.collisionCircleCenterPos.x, self.collisionCircleCenterPos.y, self.collisionCircleRadius)
+    end
     love.graphics.setColor(1, 1, 1, 1)
     love.graphics.draw(hookSheet, hookQuads[self.currentAnimation:getCurrentFrame()],
         -- X and Y
@@ -444,6 +446,9 @@ function BasicMapObject:tryTakeEffect()
     if player.hasGemPolish and self.type == 'Diamond' then
         self.bonus = self.bonus * 1.5
     end
+    if self.type == 'MoleWithDiamond' then
+        self.bonus = (self.bonus - entityConfig['Mole'].bonus) * 1.5 + entityConfig['Mole'].bonus
+    end
 end
 
 function BasicMapObject:destroyByExplosive()
@@ -494,7 +499,9 @@ function BasicMapObject:render()
     end 
 
     -- Draw collision circle for debugging
-    -- love.graphics.circle('fill', self.collisionCircleCenterPos.x, self.collisionCircleCenterPos.y, self.collisionCircleRadius)
+    if DEBUG_MODE and SHOW_BOUNDING_VOLUME then
+        love.graphics.circle('fill', self.collisionCircleCenterPos.x, self.collisionCircleCenterPos.y, self.collisionCircleRadius)
+    end
     if self.isGrabedByHook then
         love.graphics.draw(sprites[self.type], self.pos.x, self.pos.y,
         -- Rotation(Radians)
@@ -613,6 +620,10 @@ function MoveAroundMapObject:render()
         return
     end
 
+    if DEBUG_MODE and SHOW_BOUNDING_VOLUME then
+        love.graphics.circle('fill', self.collisionCircleCenterPos.x, self.collisionCircleCenterPos.y, self.collisionCircleRadius)
+    end
+
     if self.isGrabedByHook then
         love.graphics.draw(self.sheet, self.quads[self.currentAnimation:getCurrentFrame()], self.pos.x, self.pos.y, degrees2radians(hook.angle), -self.dirVec.x, 1, self.width / 2, self.height / 2)
     else
@@ -649,7 +660,7 @@ function ExplosiveMapObject:update(dt)
     if self.isGrabedByHook then
         self.pos = hook.collisionCircleCenterPos
     end
-    self.collisionCircleCenterPos = self.pos
+    self.collisionCircleCenterPos = self.pos + vector(self.width / 2, self.height / 2)
 
     -- Collision detect
     if checkCircleCollision(self.collisionCircleCenterPos,
@@ -705,15 +716,17 @@ function ExplosiveMapObject:render()
     end
 
     -- Draw collision circle for debugging
-    -- love.graphics.circle('fill', self.collisionCircleCenterPos.x, self.collisionCircleCenterPos.y, self.collisionCircleRadius)
+    if DEBUG_MODE and SHOW_BOUNDING_VOLUME then
+        love.graphics.circle('fill', self.collisionCircleCenterPos.x, self.collisionCircleCenterPos.y, self.collisionCircleRadius)
+    end
     self.biggerExplosiveFX:render()
 
-    if self.isExplode then
+    if not self.isExplode and not self.isGrabedByHook then
+        love.graphics.draw(sprites[self.type], self.pos.x, self.pos.y)
         return
     end
 
-    if self.isGrabedByHook then
-        love.graphics.draw(sprites[self.destroyedType], self.pos.x, self.pos.y,
+    love.graphics.draw(sprites[self.destroyedType], self.pos.x, self.pos.y,
         -- Rotation(Radians)
         degrees2radians(hook.angle),
         -- X scale and Y scale
@@ -721,9 +734,6 @@ function ExplosiveMapObject:render()
         -- X offset and Y offset
         self.width / 3, self.height / 10
         )
-    else
-        love.graphics.draw(sprites[self.type], self.pos.x, self.pos.y)
-    end
 end
 
 function createEntityInstance(type, pos, dir)

@@ -37,6 +37,7 @@ COLOR_GREEN = {67/255, 160/255, 71/255}
 TOTAL_LEVEL_COUNT = 3
 
 DEBUG_MODE = false
+SHOW_BOUNDING_VOLUME = false
 TEST_LEVEL = false
 
 function love.conf(t)

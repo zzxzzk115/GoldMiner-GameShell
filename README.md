@@ -2,7 +2,7 @@
 
 The classic game remake. Build for GameShell. Made with [LÖVE](https://love2d.org/)(11.1).
 
-The project uses [hump](https://github.com/vrld/hump) for utility functions. 
+The project uses [hump](https://github.com/vrld/hump) and [lume](https://github.com/rxi/lume)  for utility functions.
 
 The project is in demo stage.
 
@@ -40,6 +40,12 @@ Left and Right -> Select the shop item you wanna buy
 
 ## Release Notes
 
+2022/5/26 1.0.0a:
+
+- Added High Score System.
+- Fixed [Issue #2](https://github.com/zzxzzk115/GoldMiner-GameShell/issues/2).
+- Numerical balance adjustment.
+
 2022/5/26 DEMO-4:
 
 - Added new entities: Skulls,Bones,TNTs.
@@ -51,9 +57,9 @@ Left and Right -> Select the shop item you wanna buy
 
 - Added FXs.
 - Added Strength! effect.
-- Added miner animation
-- Fixed #1
-- Numerical balance adjustment
+- Added miner animation.
+- Fixed [Issue #1](https://github.com/zzxzzk115/GoldMiner-GameShell/issues/1).
+- Numerical balance adjustment.
 
 2022/5/23 DEMO-2: 
 

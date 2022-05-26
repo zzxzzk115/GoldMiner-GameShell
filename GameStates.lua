@@ -2,6 +2,8 @@ levels = require 'levels'
 require 'props'
 
 menu = {}
+showHighScore = {}
+showNewHighScore = {}
 showNextGoal = {}
 showMadeGoal = {}
 shop = {}
@@ -24,6 +26,16 @@ function menu:init()
         x = 5,
         y = 172
     }
+    -- Init persistentData
+    persistentData = {}
+    persistentData.highScore = 0
+    persistentData.highLevel = 1
+
+    -- Load saved data to persistentData if file exists.
+    if love.filesystem.getInfo("savedata.txt") then
+        file = love.filesystem.read("savedata.txt")
+        persistentData = lume.deserialize(file)
+    end
 end
 
 function menu:enter()
@@ -40,6 +52,7 @@ function menu:keypressed(key)
             Gamestate.switch(showNextGoal)
         elseif self.arrowState == highScore then
             -- Show high score
+            Gamestate.switch(showHighScore)
         end
     end
 end
@@ -67,6 +80,44 @@ function menu:draw()
 
     -- Draw arrow
     love.graphics.draw(sprites['MenuArrow'], self.arrowPos.x, self.arrowPos.y)
+end
+
+function showHighScore:keypressed(key)
+    Gamestate.switch(menu)
+end
+
+function showHighScore:draw()
+    -- Draw BG
+    love.graphics.draw(backgrounds['Goal'])
+
+    -- Draw title
+    love.graphics.draw(sprites['Title'], WINDOW_WIDTH / 2 - sprites['Title']:getWidth() / 2, 20)
+
+    -- Draw panel
+    love.graphics.draw(sprites['Panel'], WINDOW_WIDTH / 2 - sprites['Panel']:getWidth() / 2, 80)
+
+    -- Draw high score text
+    local highScoreText = love.graphics.newText(uiFont, {COLOR_YELLOW, 'High Score:', COLOR_GREEN, '\n\n$' .. persistentData.highScore, COLOR_YELLOW, ' at Level' .. persistentData.highLevel })
+    love.graphics.draw(highScoreText, 70, 100)
+end
+
+function showNewHighScore:keypressed(key)
+    Gamestate.switch(menu)
+end
+
+function showNewHighScore:draw()
+    -- Draw BG
+    love.graphics.draw(backgrounds['Goal'])
+    
+    -- Draw title
+    love.graphics.draw(sprites['Title'], WINDOW_WIDTH / 2 - sprites['Title']:getWidth() / 2, 20)
+    
+    -- Draw panel
+    love.graphics.draw(sprites['Panel'], WINDOW_WIDTH / 2 - sprites['Panel']:getWidth() / 2, 80)
+    
+    -- Draw high score text
+    local newHighScoreText = love.graphics.newText(uiFont, {COLOR_YELLOW, 'New High Score:', COLOR_GREEN, '\n\n$' .. persistentData.highScore, COLOR_YELLOW, ' at Level' .. persistentData.highLevel })
+    love.graphics.draw(newHighScoreText, 70, 100)
 end
 
 function showNextGoal:init()
@@ -193,7 +244,6 @@ function shop:enter()
     self.finishShoppingTimer = 1.5
 
     -- Init misc state
-    
     self.isPlayerFinishShopping = false
     self.isPlayerBought = false
 end
@@ -348,7 +398,11 @@ function game:keypressed(key)
         elseif key == '4' then
             player.hasRockCollectorsBook = not player.hasRockCollectorsBook
         elseif key == '5' then
-            player.hasGemPolish = not player.hasGemPolish      
+            player.hasGemPolish = not player.hasGemPolish
+        elseif key == 'c' then
+            persistentData.highScore = 0
+            persistentData.highLevel = 1
+            love.filesystem.remove("savedata.txt")
         end
     end
 end
@@ -447,7 +501,15 @@ function gameOver:enter()
 end 
 
 function gameOver:keypressed(key)
-    Gamestate.switch(menu)
+    if player.money > persistentData.highScore then
+        persistentData.highScore = player.money
+        persistentData.highLevel = player.level
+        serialized = lume.serialize(persistentData)
+        love.filesystem.write("savedata.txt", serialized)
+        Gamestate.switch(showNewHighScore)
+    else
+        Gamestate.switch(menu)
+    end
 end
 
 function gameOver:draw()

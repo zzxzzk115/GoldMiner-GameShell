@@ -1,6 +1,7 @@
 Gamestate = require 'hump.gamestate'
 Class = require 'hump.class'
-vector = require "hump.vector"
+vector = require 'hump.vector'
+lume = require 'lume'
 require 'Util'
 require 'GameStates'
 require 'Animation'
@@ -138,7 +139,7 @@ function love.load()
     }
     moleMoveAnimation = Animation {
         frames = {1, 2, 3, 4, 5, 6, 7},
-        interval = 0.2
+        interval = 0.06
     }
     entityConfig['Mole'].sheet = moleSheet
     entityConfig['Mole'].quads = moleQuads
@@ -153,7 +154,7 @@ function love.load()
     }
     moleWithDiamondMoveAnimation = Animation {
         frames = {1, 2, 3, 4, 5, 6, 7},
-        interval = 0.2
+        interval = 0.06
     }
     entityConfig['MoleWithDiamond'].sheet = moleWithDiamondSheet
     entityConfig['MoleWithDiamond'].quads = moleWithDiamondQuads
