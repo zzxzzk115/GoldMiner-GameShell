@@ -40,6 +40,13 @@ Left and Right -> Select the shop item you wanna buy
 
 ## Release Notes
 
+2022/5/26 DEMO-4:
+
+- Added new entities: Skulls,Bones,TNTs.
+- Added new FX: Bigger explosive fx.
+- Completed all of the levels.
+- Fixed some bugs.
+
 2022/5/24 DEMO-3:
 
 - Added FXs.
