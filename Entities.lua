@@ -25,14 +25,14 @@ entityConfig = {
     },
     ['MiniRock'] = {
         ['type'] = 'Basic',
-        ['mass'] = 4,
-        ['bonus'] = 10,
+        ['mass'] = 5.5,
+        ['bonus'] = 11,
         ['bonusType'] = 'Low'
     },
     ['NormalRock'] = {
         ['type'] = 'Basic',
         ['mass'] = 7,
-        ['bonus'] = 50,
+        ['bonus'] = 20,
         ['bonusType'] = 'Low'
     },
     ['BigRock'] = {
@@ -59,7 +59,7 @@ entityConfig = {
             if math.random(100) <= 20 then
                 player.dynamiteCount = player.dynamiteCount + 1
             else
-                player.strength = math.min(6, player.strength * 3)
+                player.strength = math.min(6, player.strength * 1.5 + 1)
                 game.isShowStrength = true
             end
         end,
@@ -92,12 +92,33 @@ entityConfig = {
         ['idleAnimation'] = nil,
         ['moveAnimation'] = nil,
     },
+    ['Skull'] = {
+        ['type'] = 'Basic',
+        ['mass'] = 2,
+        ['bonus'] = 20,
+        ['bonusType'] = 'Low'
+    },
+    ['Bone'] = {
+        ['type'] = 'Basic',
+        ['mass'] = 3,
+        ['bonus'] = 7,
+        ['bonusType'] = 'Low'
+    },
+    ['TNT'] = {
+        ['type'] = 'Explosive',
+        ['destroyedType'] = 'TNT_Destroyed',
+        ['isDestroyedTiny'] = true,
+        ['mass'] = 1,
+        ['bonus'] = 2,
+        ['bonusType'] = 'Low'
+    }
 }
 
 Player = Class{}
 
 function Player:init()
     self.level = 1
+    self.realLevelStr = 'L1_1'
     self.goal = 375
     self.goalAddOn = 275
     self.money = 0
@@ -129,15 +150,18 @@ end
 
 function Player:tryUseDynamite()
     if self.dynamiteCount > 0 then
+        -- If grabed nothing or hook is stop moving then return
+        if hook.grabedEntity == nil or hook.isStopMoving then
+            return
+        end
+
         -- Set FX active
         hook.explosiveFX.isActive = true
 
         -- Destroy grabed entity
         hook.currentAnimation = hookIdleAnimation
-        if hook.grabedEntity ~= nil then
-            hook.grabedEntity.isActive = false
-            hook.grabedEntity = nil
-        end
+        hook.grabedEntity.isActive = false
+        hook.grabedEntity = nil
 
         -- Set animation
         self.isUsingDynamite = true
@@ -155,13 +179,16 @@ function Player:syncView()
     self.money4View = self.money
 end
 
+function Player:addDynamite()
+    self.dynamiteCount = math.min(self.dynamiteCount + 1, 12)
+end
+
 function Player:reset()
     self.strength = 1
     self.hasStrengthDrink = false
     self.hasLuckyClover = false
     self.hasRockCollectorsBook = false
     self.hasGemPolish = false
-    
 end
 
 function Player:update(dt)
@@ -333,7 +360,7 @@ function Hook:render()
         HOOK_WIDTH / 2, 0
         )
     -- Draw FX
-    self.explosiveFX:draw()
+    self.explosiveFX:render()
 end
 
 FX = Class{}
@@ -346,7 +373,6 @@ function FX:init(sheet, quads, animation, width, height, timer, followEntity, of
     self.height = height
     self.isActive = false
     self.pos = vector(0, 0)
-    self.timerCache = timer
     self.timer = timer
     if offset ~= nil then
         self.offset = offset
@@ -363,7 +389,6 @@ function FX:update(dt)
     self.timer = self.timer - dt
     if self.timer <= 0 then
         self.isActive = false
-        self.timer = self.timerCache
     end
     self.animation:update(dt)
     if self.followEntity ~= nil then
@@ -371,7 +396,7 @@ function FX:update(dt)
     end
 end
 
-function FX:draw()
+function FX:render()
     if not self.isActive then
         return
     end
@@ -421,6 +446,10 @@ function BasicMapObject:tryTakeEffect()
     end
 end
 
+function BasicMapObject:destroyByExplosive()
+    self.isActive = false
+end
+
 function BasicMapObject:update(dt)
     if not self.isActive then
         return
@@ -461,7 +490,7 @@ function BasicMapObject:render()
     end
 
     if self.type == 'BigGold' then
-        self.fx:draw()
+        self.fx:render()
     end 
 
     -- Draw collision circle for debugging
@@ -510,10 +539,10 @@ function MoveAroundMapObject:init(type, pos, dir)
     self.quads = entityConfig[type].quads
     self.idleAnimation = entityConfig[type].idleAnimation
     self.moveAnimation = entityConfig[type].moveAnimation
-    self.currentAnimation = self.idleAnimation
+    self.currentAnimation = self.moveAnimation
     self.dir = dir
     self.idleTimer = 1
-    self.isMove = false
+    self.isMove = true
     self:setup(type, pos)
     -- Init dest pos
     if self.dir == 'Left' then
@@ -531,8 +560,9 @@ function MoveAroundMapObject:update(dt)
 
     self.currentAnimation:update(dt)
 
-    -- Update collision circle pos
+    -- Update animation and collision circle pos
     if self.isGrabedByHook then
+        self.currentAnimation = self.moveAnimation
         self.pos = hook.collisionCircleCenterPos
     end
     self.collisionCircleCenterPos = self.pos
@@ -568,7 +598,6 @@ function MoveAroundMapObject:update(dt)
     end
 
     if self.isMove then
-        
         self.pos = self.pos + self.dirVec * self.speed
         if math.abs(self.pos.x - self.destPos.x) <= 1 then
             self.isMove = false
@@ -591,6 +620,112 @@ function MoveAroundMapObject:render()
     end
 end
 
+ExplosiveMapObject = Class{__includes = BasicMapObject}
+
+function ExplosiveMapObject:init(type, pos)
+    self.width = sprites[type]:getWidth()
+    self.height = sprites[type]:getHeight()
+    self.destroyedType = entityConfig[type].destroyedType
+    self.isExplode = false
+    self:setup(type, pos)
+    -- Init FX
+    self.biggerExplosiveFX = FX(biggerExplosiveFXSheet, biggerExplosiveFXQuads, biggerExplosiveFXDefaultAnimation, BIGGER_EXPLOSIVE_FX_WIDTH, BIGGER_EXPLOSIVE_FX_HEIGHT, 0.5)
+    self.biggerExplosiveFX.pos = self.collisionCircleCenterPos
+end
+
+function ExplosiveMapObject:destroyByExplosive()
+    self.isExplode = true
+end
+
+function ExplosiveMapObject:update(dt)
+    if not self.isActive then
+        return
+    end
+
+    -- Update FX
+    self.biggerExplosiveFX:update(dt)
+
+    -- Update collision circle pos
+    if self.isGrabedByHook then
+        self.pos = hook.collisionCircleCenterPos
+    end
+    self.collisionCircleCenterPos = self.pos
+
+    -- Collision detect
+    if checkCircleCollision(self.collisionCircleCenterPos,
+        hook.collisionCircleCenterPos,
+        self.collisionCircleRadius,
+        hook.collisionCircleRadius) then
+            if hook.grabedEntity == nil and not hook.isBacking then
+                self:tryTakeEffect()
+                self.isExplode = true
+                self.isTinyObject = entityConfig[self.type].isDestroyedTiny
+                self.isGrabedByHook = true
+                hook.grabedEntity = self
+                sounds[self.bonusType]:play()
+                if self.isTinyObject then
+                    hook.currentAnimation = hookGrabMiniAnimation
+                else
+                    hook.currentAnimation = hookGrabNormalAnimation
+                end
+            end
+    end
+
+    if self.isExplode then
+        -- Set FX Active
+        self.biggerExplosiveFX.isActive = true
+
+        -- Play sound
+        sounds['Explosive']:play()
+
+        -- Explode with range...
+        for entityIndex, entity in ipairs(game.entities) do
+            if entity ~= self then
+                if checkCircleCollision(self.biggerExplosiveFX.pos,
+                    entity.collisionCircleCenterPos,
+                    self.biggerExplosiveFX.width / 2,
+                    entity.collisionCircleRadius) then
+                        entity:destroyByExplosive()
+                end
+            end 
+        end
+
+        if self.biggerExplosiveFX.timer <= 0 then
+            if not self.isGrabedByHook then
+                self.isActive = false
+            end
+            self.isExplode = false
+        end
+    end
+end
+
+function ExplosiveMapObject:render()
+    if not self.isActive then
+        return
+    end
+
+    -- Draw collision circle for debugging
+    -- love.graphics.circle('fill', self.collisionCircleCenterPos.x, self.collisionCircleCenterPos.y, self.collisionCircleRadius)
+    self.biggerExplosiveFX:render()
+
+    if self.isExplode then
+        return
+    end
+
+    if self.isGrabedByHook then
+        love.graphics.draw(sprites[self.destroyedType], self.pos.x, self.pos.y,
+        -- Rotation(Radians)
+        degrees2radians(hook.angle),
+        -- X scale and Y scale
+        1, 1,
+        -- X offset and Y offset
+        self.width / 3, self.height / 10
+        )
+    else
+        love.graphics.draw(sprites[self.type], self.pos.x, self.pos.y)
+    end
+end
+
 function createEntityInstance(type, pos, dir)
     if entityConfig[type].type == 'Basic' then 
         entityInstance = BasicMapObject(type, pos)
@@ -598,6 +733,8 @@ function createEntityInstance(type, pos, dir)
         entityInstance = RandomEffectMapObject(type, pos)
     elseif entityConfig[type].type == 'MoveAround' then
         entityInstance = MoveAroundMapObject(type, pos, dir)
+    elseif entityConfig[type].type == 'Explosive' then
+        entityInstance = ExplosiveMapObject(type, pos)
     end
     return entityInstance
 end

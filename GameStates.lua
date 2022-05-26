@@ -114,6 +114,13 @@ function showMadeGoal:enter()
     self.timer = 0.5
     -- Increase player level
     player.level = player.level + 1
+    local realLevel = 0
+    if player.level <= 3 then
+        realLevel = player.level
+    else
+        realLevel = (player.level - 3) % 7 + 3
+    end
+    player.realLevelStr = 'L' .. realLevel .. '_' .. math.random(1, 3)
     -- Init goal text
     self.goalTextContent = 'You made it to\nthe next Level!'
     -- Play goal bgm
@@ -166,6 +173,13 @@ function shop:enter()
             table.insert(self.items, prop)
             itemIndex = itemIndex + 1
         end
+    end
+    -- Ensure the shop has items.
+    if #self.items == 0 then
+        propsConfig['Dynamite'].price = propsConfig['Dynamite'].getPrice(player.level)
+        propsConfig['Dynamite'].pos = self.itemsStartBottomPos
+        self.selectorInfo[1] = 'Dynamite'
+        table.insert(self.items, 'Dynamite')
     end
 
     -- Init shopkeeper's animation state
@@ -293,7 +307,7 @@ function game:enter()
     player:syncView()
 
     -- Load level
-    levels.loadLevel(player.level, self.entities)
+    levels.loadLevel(player.realLevelStr, self.entities)
 
     -- Init misc
     self.isShowBonus = false
@@ -320,10 +334,22 @@ function game:keypressed(key)
         elseif DEBUG_MODE then
             Gamestate.switch(gameOver)
         end
-    elseif key == 'v' and DEBUG_MODE then
-        -- Cheat
-        player.money4View = player.goal
-        player.money = player.goal
+    -- Cheat
+    elseif DEBUG_MODE then
+        if key == 'v' then
+            player.money4View = player.goal
+            player.money = player.goal
+        elseif key == '1' then
+            player:addDynamite()
+        elseif key == '2' then
+            player.hasStrengthDrink = not player.hasStrengthDrink
+        elseif key == '3' then
+            player.hasLuckyClover = not player.hasLuckyClover
+        elseif key == '4' then
+            player.hasRockCollectorsBook = not player.hasRockCollectorsBook
+        elseif key == '5' then
+            player.hasGemPolish = not player.hasGemPolish      
+        end
     end
 end
 
@@ -374,7 +400,7 @@ end
 function game:draw()
     -- Draw BGs
     love.graphics.draw(backgrounds['LevelCommonTop'])
-    love.graphics.draw(backgrounds[levels[(player.level - 1) % TOTAL_LEVEL_COUNT + 1].type], 0, 40)
+    love.graphics.draw(backgrounds[levels[player.realLevelStr].type], 0, 40)
 
     -- Draw UI texts
     local moneyText = love.graphics.newText(gameFont, {COLOR_DEEP_ORANGE, 'Money', COLOR_GREEN, ' $' .. player.money4View})

@@ -25,6 +25,9 @@ BIG_GOLD_FX_HEIGHT = 54
 EXPLOSIVE_FX_WIDTH = 64
 EXPLOSIVE_FX_HEIGHT = 64
 
+BIGGER_EXPLOSIVE_FX_WIDTH = 78
+BIGGER_EXPLOSIVE_FX_HEIGHT = 78
+
 COLOR_BLACK = {0, 0, 0}
 COLOR_YELLOW = {255/255, 214/255, 33/255}
 COLOR_ORANGE = {239/255, 108/255, 0/255}
@@ -34,6 +37,7 @@ COLOR_GREEN = {67/255, 160/255, 71/255}
 TOTAL_LEVEL_COUNT = 3
 
 DEBUG_MODE = false
+TEST_LEVEL = false
 
 function love.conf(t)
     t.version = "11.1"                      -- The LÖVE version this game was made for (string)

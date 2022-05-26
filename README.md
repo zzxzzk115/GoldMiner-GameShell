@@ -55,16 +55,9 @@ Left and Right -> Select the shop item you wanna buy
 - Added new levels: level-2 and level-3.
 - Fixed some bugs.
 
-## TODO-List
+## Project staus
 
-- [x] More levels
-- [x] More map entity types
-- [x] Shop system
-- [x] Props system
-- [ ] High score system
-- [ ] Continue game system (aka. Persistent system)
-- [ ] All levels
-- [x] Numerical balance adjustment
+Checkout project status [here](https://github.com/zzxzzk115/GoldMiner-GameShell/projects/1).
 
 
 ## License

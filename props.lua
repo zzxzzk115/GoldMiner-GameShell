@@ -1,7 +1,7 @@
 propsConfig = {
     ['Dynamite'] = {
         ['description'] = 'After you grabed onto something with your\nclaw, press UP to throw a piece of dynamite\nat it and blow it up.',
-        effect = function(player) player.dynamiteCount = math.min(player.dynamiteCount + 1, 6) end,
+        effect = function(player) player:addDynamite() end,
         getPrice = function(level) return math.random(300) + 1 + level * 2 end,
         ['uiPos'] = {
             [1] = {
@@ -9,24 +9,48 @@ propsConfig = {
                 ['y'] = 22
             },
             [2] = {
-                ['x'] = 203,
+                ['x'] = 200,
                 ['y'] = 22
             },
             [3] = {
-                ['x'] = 211,
+                ['x'] = 205,
                 ['y'] = 22
             },
             [4] = {
-                ['x'] = 219,
+                ['x'] = 210,
                 ['y'] = 22
             },
             [5] = {
-                ['x'] = 227,
+                ['x'] = 215,
                 ['y'] = 22
             },
             [6] = {
-                ['x'] = 235,
+                ['x'] = 220,
                 ['y'] = 22
+            },
+            [7] = {
+                ['x'] = 195,
+                ['y'] = 12
+            },
+            [8] = {
+                ['x'] = 200,
+                ['y'] = 12
+            },
+            [9] = {
+                ['x'] = 205,
+                ['y'] = 12
+            },
+            [10] = {
+                ['x'] = 210,
+                ['y'] = 12
+            },
+            [11] = {
+                ['x'] = 215,
+                ['y'] = 12
+            },
+            [12] = {
+                ['x'] = 220,
+                ['y'] = 12
             },
         },
         --['type'] = 'Usable',

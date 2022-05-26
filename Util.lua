@@ -18,6 +18,21 @@ function tointeger(x)
     return num < 0 and math.ceil(num) or math.floor(num)
 end
 
+function copyTable(tab)
+	function _copy(obj)
+		if type(obj) ~= "table" then
+			return obj
+		end
+		local new_table = {}
+		for k, v in pairs(obj) do
+			new_table[_copy(k)] = _copy(v)
+		end
+		return setmetatable(new_table, getmetatable(obj))
+	end
+	return _copy(tab)
+end
+
+
 function generateQuads(atlas, tilewidth, tileheight)
     local sheetWidth = atlas:getWidth() / tilewidth
     local sheetHeight = atlas:getHeight() / tileheight

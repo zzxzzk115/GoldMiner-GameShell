@@ -1,9 +1,9 @@
 Gamestate = require 'hump.gamestate'
 Class = require 'hump.class'
 vector = require "hump.vector"
+require 'Util'
 require 'GameStates'
 require 'Animation'
-require 'Util'
 
 function love.load()
     -- Init fonts
@@ -41,6 +41,7 @@ function love.load()
         ['LevelB'] = love.graphics.newImage('images/bg_level_B.png'),
         ['LevelC'] = love.graphics.newImage('images/bg_level_C.png'),
         ['LevelD'] = love.graphics.newImage('images/bg_level_D.png'),
+        ['LevelE'] = love.graphics.newImage('images/bg_level_E.png'),
         ['Goal'] = love.graphics.newImage('images/bg_goal.png'),
         ['Shop'] = love.graphics.newImage('images/bg_shop.png')
     }
@@ -55,6 +56,10 @@ function love.load()
         ['BigRock'] = love.graphics.newImage('images/rock_big.png'),
         ['QuestionBag'] = love.graphics.newImage('images/question_bag.png'),
         ['Diamond'] = love.graphics.newImage('images/diamond.png'),
+        ['Skull'] = love.graphics.newImage('images/skull.png'),
+        ['Bone'] = love.graphics.newImage('images/bone.png'),
+        ['TNT'] = love.graphics.newImage('images/tnt.png'),
+        ['TNT_Destroyed'] = love.graphics.newImage('images/tnt_destroyed.png'),
         -- UI
         ['MenuArrow'] = love.graphics.newImage('images/menu_arrow.png'),
         ['Panel'] = love.graphics.newImage('images/panel.png'),
@@ -133,7 +138,7 @@ function love.load()
     }
     moleMoveAnimation = Animation {
         frames = {1, 2, 3, 4, 5, 6, 7},
-        interval = 0.07
+        interval = 0.2
     }
     entityConfig['Mole'].sheet = moleSheet
     entityConfig['Mole'].quads = moleQuads
@@ -148,7 +153,7 @@ function love.load()
     }
     moleWithDiamondMoveAnimation = Animation {
         frames = {1, 2, 3, 4, 5, 6, 7},
-        interval = 0.07
+        interval = 0.2
     }
     entityConfig['MoleWithDiamond'].sheet = moleWithDiamondSheet
     entityConfig['MoleWithDiamond'].quads = moleWithDiamondQuads
@@ -166,6 +171,13 @@ function love.load()
     explosiveFXSheet = love.graphics.newImage('images/explosive_fx_sheet.png')
     explosiveFXQuads = generateQuads(explosiveFXSheet, EXPLOSIVE_FX_WIDTH, EXPLOSIVE_FX_HEIGHT)
     explosiveFXDefaultAnimation = Animation {
+        frames = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12},
+        interval = 0.06
+    }
+
+    biggerExplosiveFXSheet = love.graphics.newImage('images/bigger_explosive_fx_sheet.png')
+    biggerExplosiveFXQuads = generateQuads(biggerExplosiveFXSheet, BIGGER_EXPLOSIVE_FX_WIDTH, BIGGER_EXPLOSIVE_FX_HEIGHT)
+    biggerExplosiveFXDefaultAnimation = Animation {
         frames = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12},
         interval = 0.06
     }
