@@ -40,6 +40,12 @@ Left and Right -> Select the shop item you wanna buy
 
 ## Release Notes
 
+2022/5/27 v1.0.0-b:
+
+- Limited FPS to 60
+- Fixed QuestionBag view error.
+- Fixed [Issue #3](https://github.com/zzxzzk115/GoldMiner-GameShell/issues/3)
+
 2022/5/26 1.0.0a:
 
 - Added High Score System.
