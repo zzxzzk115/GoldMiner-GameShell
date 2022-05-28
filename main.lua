@@ -143,7 +143,7 @@ function love.load()
     }
     moleMoveAnimation = Animation {
         frames = {1, 2, 3, 4, 5, 6, 7},
-        interval = 0.06
+        interval = 0.15
     }
     entityConfig['Mole'].sheet = moleSheet
     entityConfig['Mole'].quads = moleQuads
@@ -158,7 +158,7 @@ function love.load()
     }
     moleWithDiamondMoveAnimation = Animation {
         frames = {1, 2, 3, 4, 5, 6, 7},
-        interval = 0.06
+        interval = 0.15
     }
     entityConfig['MoleWithDiamond'].sheet = moleWithDiamondSheet
     entityConfig['MoleWithDiamond'].quads = moleWithDiamondQuads
@@ -170,21 +170,21 @@ function love.load()
     bigGoldFXQuads = generateQuads(bigGoldFXSheet, BIG_GOLD_FX_WIDTH, BIG_GOLD_FX_HEIGHT)
     bigGoldFXDefaultAnimation = Animation {
         frames = {1, 2, 3, 4, 5, 6, 7, 8, 9},
-        interval = 0.06
+        interval = 0.2
     }
 
     explosiveFXSheet = love.graphics.newImage('images/explosive_fx_sheet.png')
     explosiveFXQuads = generateQuads(explosiveFXSheet, EXPLOSIVE_FX_WIDTH, EXPLOSIVE_FX_HEIGHT)
     explosiveFXDefaultAnimation = Animation {
         frames = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12},
-        interval = 0.06
+        interval = 0.2
     }
 
     biggerExplosiveFXSheet = love.graphics.newImage('images/bigger_explosive_fx_sheet.png')
     biggerExplosiveFXQuads = generateQuads(biggerExplosiveFXSheet, BIGGER_EXPLOSIVE_FX_WIDTH, BIGGER_EXPLOSIVE_FX_HEIGHT)
     biggerExplosiveFXDefaultAnimation = Animation {
         frames = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12},
-        interval = 0.06
+        interval = 0.2
     }
 
     -- Init RNG.

@@ -225,7 +225,7 @@ function Hook:init()
     self.isShowBonus = false
     self.isStopMoving = false
     self.currentAnimation = hookIdleAnimation
-    self.explosiveFX = FX(explosiveFXSheet, explosiveFXQuads, explosiveFXDefaultAnimation, EXPLOSIVE_FX_WIDTH, EXPLOSIVE_FX_HEIGHT, 0.5)
+    self.explosiveFX = FX(explosiveFXSheet, explosiveFXQuads, explosiveFXDefaultAnimation, EXPLOSIVE_FX_WIDTH, EXPLOSIVE_FX_HEIGHT, 0.5, true)
     sounds['HookReset']:play()
 end
 
@@ -370,7 +370,7 @@ end
 
 FX = Class{}
 
-function FX:init(sheet, quads, animation, width, height, timer, followEntity, offset)
+function FX:init(sheet, quads, animation, width, height, timer, timerLoop, followEntity, offset)
     self.sheet = sheet
     self.quads = quads
     self.animation = animation
@@ -378,7 +378,9 @@ function FX:init(sheet, quads, animation, width, height, timer, followEntity, of
     self.height = height
     self.isActive = false
     self.pos = vector(0, 0)
+    self.timerCache = timer
     self.timer = timer
+    self.timerLoop = timerLoop
     if offset ~= nil then
         self.offset = offset
     else
@@ -393,6 +395,9 @@ function FX:update(dt)
     end
     self.timer = self.timer - dt
     if self.timer <= 0 then
+        if self.timerLoop then
+            self.timer = self.timerCache
+        end
         self.isActive = false
     end
     self.animation:update(dt)
@@ -415,7 +420,7 @@ function BasicMapObject:init(type, pos)
     self.height = sprites[type]:getHeight()
     self:setup(type, pos)
     if self.type == 'BigGold' then
-        self.fx = FX(bigGoldFXSheet, bigGoldFXQuads, bigGoldFXDefaultAnimation, BIG_GOLD_FX_WIDTH, BIG_GOLD_FX_HEIGHT, 0.5, self)
+        self.fx = FX(bigGoldFXSheet, bigGoldFXQuads, bigGoldFXDefaultAnimation, BIG_GOLD_FX_WIDTH, BIG_GOLD_FX_HEIGHT, 0.5, false, self)
     end
 end
 
@@ -644,7 +649,7 @@ function ExplosiveMapObject:init(type, pos)
     self.isExplode = false
     self:setup(type, pos)
     -- Init FX
-    self.biggerExplosiveFX = FX(biggerExplosiveFXSheet, biggerExplosiveFXQuads, biggerExplosiveFXDefaultAnimation, BIGGER_EXPLOSIVE_FX_WIDTH, BIGGER_EXPLOSIVE_FX_HEIGHT, 0.5)
+    self.biggerExplosiveFX = FX(biggerExplosiveFXSheet, biggerExplosiveFXQuads, biggerExplosiveFXDefaultAnimation, BIGGER_EXPLOSIVE_FX_WIDTH, BIGGER_EXPLOSIVE_FX_HEIGHT, 0.5, false)
     self.biggerExplosiveFX.pos = self.collisionCircleCenterPos
 end
 
