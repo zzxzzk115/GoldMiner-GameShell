@@ -1,5 +1,5 @@
-WINDOW_WIDTH = 320
-WINDOW_HEIGHT = 240
+VIRTUAL_WIDTH = 320
+VIRTUAL_HEIGHT = 240
 
 PLAYER_WIDTH = 32
 PLAYER_HEIGHT = 40
@@ -42,9 +42,7 @@ function love.conf(t)
     t.version = "11.1"                      -- The LÖVE version this game was made for (string)
     t.window.title = "GoldMiner-GameShell"  -- The window title (string)
     t.window.icon = "images/icon.png"       -- Filepath to an image to use as the window's icon (string)
-    t.window.width = WINDOW_WIDTH           -- The window width (number)
-    t.window.height = WINDOW_HEIGHT         -- The window height (number)
     t.window.borderless = true              -- Remove all border visuals from the window (boolean)
     t.window.resizable = false              -- Let the window be user-resizable (boolean)
-    t.window.fullscreen = false             -- Enable fullscreen (boolean)
+    t.window.fullscreen = true              -- Enable fullscreen (boolean)
 end

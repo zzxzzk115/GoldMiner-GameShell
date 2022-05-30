@@ -67,6 +67,7 @@ function menu:update()
 end
 
 function menu:draw()
+    push:start()
     -- Draw BG
     love.graphics.draw(backgrounds['Menu'])
 
@@ -80,6 +81,7 @@ function menu:draw()
 
     -- Draw arrow
     love.graphics.draw(sprites['MenuArrow'], self.arrowPos.x, self.arrowPos.y)
+    push:finish()
 end
 
 function showHighScore:keypressed(key)
@@ -87,18 +89,20 @@ function showHighScore:keypressed(key)
 end
 
 function showHighScore:draw()
+    push:start()
     -- Draw BG
     love.graphics.draw(backgrounds['Goal'])
 
     -- Draw title
-    love.graphics.draw(sprites['Title'], WINDOW_WIDTH / 2 - sprites['Title']:getWidth() / 2, 20)
+    love.graphics.draw(sprites['Title'], VIRTUAL_WIDTH / 2 - sprites['Title']:getWidth() / 2, 20)
 
     -- Draw panel
-    love.graphics.draw(sprites['Panel'], WINDOW_WIDTH / 2 - sprites['Panel']:getWidth() / 2, 80)
+    love.graphics.draw(sprites['Panel'], VIRTUAL_WIDTH / 2 - sprites['Panel']:getWidth() / 2, 80)
 
     -- Draw high score text
     local highScoreText = love.graphics.newText(uiFont, {COLOR_YELLOW, 'High Score:', COLOR_GREEN, '\n\n$' .. persistentData.highScore, COLOR_YELLOW, ' at Level' .. persistentData.highLevel })
     love.graphics.draw(highScoreText, 70, 100)
+    push:finish()
 end
 
 function showNewHighScore:keypressed(key)
@@ -106,18 +110,20 @@ function showNewHighScore:keypressed(key)
 end
 
 function showNewHighScore:draw()
+    push:start()
     -- Draw BG
     love.graphics.draw(backgrounds['Goal'])
     
     -- Draw title
-    love.graphics.draw(sprites['Title'], WINDOW_WIDTH / 2 - sprites['Title']:getWidth() / 2, 20)
+    love.graphics.draw(sprites['Title'], VIRTUAL_WIDTH / 2 - sprites['Title']:getWidth() / 2, 20)
     
     -- Draw panel
-    love.graphics.draw(sprites['Panel'], WINDOW_WIDTH / 2 - sprites['Panel']:getWidth() / 2, 80)
+    love.graphics.draw(sprites['Panel'], VIRTUAL_WIDTH / 2 - sprites['Panel']:getWidth() / 2, 80)
     
     -- Draw high score text
     local newHighScoreText = love.graphics.newText(uiFont, {COLOR_YELLOW, 'New High Score:', COLOR_GREEN, '\n\n$' .. persistentData.highScore, COLOR_YELLOW, ' at Level' .. persistentData.highLevel })
     love.graphics.draw(newHighScoreText, 70, 100)
+    push:finish()
 end
 
 function showNextGoal:init()
@@ -146,18 +152,20 @@ function showNextGoal:update()
 end 
 
 function showNextGoal:draw()
+    push:start()
     -- Draw BG
     love.graphics.draw(backgrounds['Goal'])
 
     -- Draw title
-    love.graphics.draw(sprites['Title'], WINDOW_WIDTH / 2 - sprites['Title']:getWidth() / 2, 20)
+    love.graphics.draw(sprites['Title'], VIRTUAL_WIDTH / 2 - sprites['Title']:getWidth() / 2, 20)
 
     -- Draw panel
-    love.graphics.draw(sprites['Panel'], WINDOW_WIDTH / 2 - sprites['Panel']:getWidth() / 2, 80)
+    love.graphics.draw(sprites['Panel'], VIRTUAL_WIDTH / 2 - sprites['Panel']:getWidth() / 2, 80)
 
     -- Draw next goal text
     local nextGoalText = love.graphics.newText(uiFont, {COLOR_YELLOW, self.goalTextContent, COLOR_GREEN, '\n\n$' .. player.goal})
     love.graphics.draw(nextGoalText, 70, 100)
+    push:finish()
 end
 
 function showMadeGoal:enter()
@@ -189,18 +197,20 @@ function showMadeGoal:update(dt)
 end
 
 function showMadeGoal:draw()
+    push:start()
     -- Draw BG
     love.graphics.draw(backgrounds['Goal'])
 
     -- Draw title
-    love.graphics.draw(sprites['Title'], WINDOW_WIDTH / 2 - sprites['Title']:getWidth() / 2, 20)
+    love.graphics.draw(sprites['Title'], VIRTUAL_WIDTH / 2 - sprites['Title']:getWidth() / 2, 20)
 
     -- Draw panel
-    love.graphics.draw(sprites['Panel'], WINDOW_WIDTH / 2 - sprites['Panel']:getWidth() / 2, 80)
+    love.graphics.draw(sprites['Panel'], VIRTUAL_WIDTH / 2 - sprites['Panel']:getWidth() / 2, 80)
 
     -- Draw made goal text
     local madeGoalText = love.graphics.newText(uiFont, {COLOR_YELLOW, self.goalTextContent})
     love.graphics.draw(madeGoalText, 90, 110)
+    push:finish()
 end 
 
 function shop:enter()
@@ -307,11 +317,12 @@ function shop:update(dt)
 end 
 
 function shop:draw()
+    push:start()
     -- Draw BG
     love.graphics.draw(backgrounds['Shop'])
 
     -- Draw title
-    love.graphics.draw(sprites['Title'], WINDOW_WIDTH / 2 - sprites['Title']:getWidth() / 2, 5)
+    love.graphics.draw(sprites['Title'], VIRTUAL_WIDTH / 2 - sprites['Title']:getWidth() / 2, 5)
 
     -- Draw dialogue bubble and texts
     love.graphics.draw(sprites['DialogueBubble'], 25, 70)
@@ -338,6 +349,7 @@ function shop:draw()
         local propDescriptionText = love.graphics.newText(infoFont, {COLOR_YELLOW, prop.description})
         love.graphics.draw(propDescriptionText, 25, 195)
     end
+    push:finish()
 end
 
 function game:enter()
@@ -452,6 +464,7 @@ function game:update(dt)
 end
 
 function game:draw()
+    push:start()
     -- Draw BGs
     love.graphics.draw(backgrounds['LevelCommonTop'])
     love.graphics.draw(backgrounds[levels[player.realLevelStr].type], 0, 40)
@@ -493,6 +506,7 @@ function game:draw()
 
     -- Render hook
     hook:render()
+    push:finish()
 end
 
 function gameOver:enter()
@@ -513,16 +527,18 @@ function gameOver:keypressed(key)
 end
 
 function gameOver:draw()
+    push:start()
     -- Draw BG
     love.graphics.draw(backgrounds['Goal'])
 
     -- Draw title
-    love.graphics.draw(sprites['Title'], WINDOW_WIDTH / 2 - sprites['Title']:getWidth() / 2, 20)
+    love.graphics.draw(sprites['Title'], VIRTUAL_WIDTH / 2 - sprites['Title']:getWidth() / 2, 20)
 
     -- Draw panel
-    love.graphics.draw(sprites['Panel'], WINDOW_WIDTH / 2 - sprites['Panel']:getWidth() / 2, 80)
+    love.graphics.draw(sprites['Panel'], VIRTUAL_WIDTH / 2 - sprites['Panel']:getWidth() / 2, 80)
 
     -- Draw gameOver text
     local gameOverText = love.graphics.newText(uiFont, {COLOR_YELLOW, self.gameOverTextContent})
     love.graphics.draw(gameOverText, 50, 130)
+    push:finish()
 end 

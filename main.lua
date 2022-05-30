@@ -3,13 +3,24 @@ Class = require 'hump.class'
 vector = require 'hump.vector'
 lume = require 'lume'
 tick = require 'tick'
+push = require 'push'
 require 'Util'
 require 'GameStates'
 require 'Animation'
 
 function love.load()
+    -- initialize our nearest-neighbor filter
+    love.graphics.setDefaultFilter('nearest', 'nearest')
+
     -- Set FPS
     tick.framerate = 60
+
+    -- initialize our virtual resolution
+    push:setupScreen(VIRTUAL_WIDTH, VIRTUAL_HEIGHT, love.graphics.getWidth(), love.graphics.getHeight(), {
+        vsync = false,
+        fullscreen = true,
+        resizable = false
+    })
 
     -- Init fonts
     defaultFont = love.graphics.getFont()
