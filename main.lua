@@ -9,19 +9,26 @@ require 'GameStates'
 require 'Animation'
 
 function love.load()
-    -- initialize our nearest-neighbor filter
-    love.graphics.setDefaultFilter('nearest', 'nearest')
+    -- Get our actual screen size.
+    local actualWidth = love.graphics.getWidth()
+    local actualHeight = love.graphics.getHeight()
 
+    -- Initialize our nearest-neighbor filter
+    -- If actual size equals virtual size then skip.
+    if VIRTUAL_WIDTH ~= actualWidth or VIRTUAL_HEIGHT ~= actualHeight then
+        love.graphics.setDefaultFilter('nearest', 'nearest')
+    end
+    
     -- Set FPS
     tick.framerate = 60
-
-    -- initialize our virtual resolution
-    push:setupScreen(VIRTUAL_WIDTH, VIRTUAL_HEIGHT, love.graphics.getWidth(), love.graphics.getHeight(), {
+    -- Initialize our virtual resolution
+    -- If actual size equals virtual size then skip.
+    push:setupScreen(VIRTUAL_WIDTH, VIRTUAL_HEIGHT, actualWidth, actualHeight, {
         vsync = false,
         fullscreen = true,
         resizable = false
     })
-
+    
     -- Init fonts
     defaultFont = love.graphics.getFont()
     infoFont = love.graphics.newFont('fonts/Pixel-Square-10-1.ttf', 10)
