@@ -8,17 +8,14 @@ Download the latest Release [here](https://github.com/zzxzzk115/GoldMiner-GameSh
 
 ## How to play
 
-Menu button -> Exit
-
-A button or Start button -> Menu Confirm or Buy
-
-Y button or Up -> Use dynamite
-
-A button or Down -> Grab
-
-Select Button -> Exit current level when you reach goal or Confirm shopping
-
-Left and Right -> Select the shop item you wanna buy
+| Action                                                     | GameShell                | PC             |
+| ---------------------------------------------------------- | ------------------------ | -------------- |
+| Exit                                                       | Menu button              | Escape         |
+| Menu Confirm or Buy                                        | A button or Start button | Enter          |
+| Use dynamite                                               | Y button or Up           | Up             |
+| Grab                                                       | A button or Down         | Down           |
+| Exit current level when you reach goal or Confirm shopping | Select button            | Space          |
+| Select the shop item you wanna buy                         | Left and Right           | Left and Right |
 
 ## Screenshots
 
