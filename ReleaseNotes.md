@@ -1,5 +1,9 @@
 # Release Notes
 
+2022/6/2 v1.0.0-rc:
+
+- Updated README.md
+
 2022/5/30 v1.0.0-b.2:
 
 - Added push.lua for high resolution situation.
